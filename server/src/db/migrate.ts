@@ -26,9 +26,13 @@ export function runMigrations(db: Database.Database): void {
     'INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)',
   );
 
-  for (const migration of MIGRATIONS) {
-    if (alreadyApplied.has(migration.id)) continue;
+  const applyMigration = db.transaction((migration: Migration) => {
     db.exec(migration.sql);
     insertMigration.run(migration.id, new Date().toISOString());
+  });
+
+  for (const migration of MIGRATIONS) {
+    if (alreadyApplied.has(migration.id)) continue;
+    applyMigration(migration);
   }
 }

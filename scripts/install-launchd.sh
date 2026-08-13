@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-NODE_PATH="$(command -v node)"
+NODE_PATH="$(command -v node)" || { echo "node not found on PATH" >&2; exit 1; }
 PLIST_DEST="$HOME/Library/LaunchAgents/com.lucca.fumarende.plist"
 
 if [[ -z "$NODE_PATH" ]]; then

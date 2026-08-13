@@ -2,6 +2,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import type Database from 'better-sqlite3';
 import { registerAuthRoutes } from './auth/routes.js';
+import { registerIncomeRoutes } from './routes/income.js';
 import { runMigrations } from './db/migrate.js';
 
 declare module 'fastify' {
@@ -20,6 +21,7 @@ export async function buildApp(db: Database.Database): Promise<FastifyInstance> 
 
   app.get('/api/health', async () => ({ ok: true }));
   registerAuthRoutes(app, db);
+  registerIncomeRoutes(app, db);
 
   app.dbForTests = db;
 

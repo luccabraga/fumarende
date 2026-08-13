@@ -1,17 +1,44 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.js';
 import { LoginPage } from './pages/LoginPage.js';
+import { DashboardPage } from './pages/DashboardPage.js';
+import { ReceitasPage } from './pages/ReceitasPage.js';
+import { PlaceholderPage } from './pages/PlaceholderPage.js';
+import { NavShell } from './components/NavShell.js';
+import { ProtectedRoute } from './components/ProtectedRoute.js';
 
-function Gate() {
-  const { passwordSet, authenticated } = useAuth();
-  if (passwordSet === null) return null; // status still loading
-  if (!authenticated) return <LoginPage />;
-  return <p style={{ padding: 24 }}>Logged in — app shell arrives in Task 11.</p>;
+function Router() {
+  const { passwordSet } = useAuth();
+  if (passwordSet === null) return null;
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<NavShell />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/receitas" element={<ReceitasPage />} />
+            <Route path="/cambio" element={<PlaceholderPage title="Câmbio" />} />
+            <Route path="/gastos" element={<PlaceholderPage title="Gastos" />} />
+            <Route path="/parcelas" element={<PlaceholderPage title="Parcelas" />} />
+            <Route path="/reserva" element={<PlaceholderPage title="Reserva" />} />
+            <Route path="/metas" element={<PlaceholderPage title="Metas" />} />
+            <Route path="/projetos" element={<PlaceholderPage title="Projetos Especiais" />} />
+            <Route path="/analise" element={<PlaceholderPage title="Análise" />} />
+            <Route path="/historico-dolar" element={<PlaceholderPage title="Histórico Dólar" />} />
+            <Route path="/backup" element={<PlaceholderPage title="Backup & Dados" />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export function App() {
   return (
     <AuthProvider>
-      <Gate />
+      <Router />
     </AuthProvider>
   );
 }

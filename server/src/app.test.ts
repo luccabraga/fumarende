@@ -39,7 +39,10 @@ describe('static frontend serving', () => {
 
     const res = await app.inject({ method: 'GET', url: '/api/does-not-exist' });
     expect(res.statusCode).toBe(404);
-    expect(res.json()).toEqual({ error: 'not found' });
+    // Fastify's default 404 response includes error, message, and statusCode
+    const body = res.json();
+    expect(body).toHaveProperty('error');
+    expect(body).toHaveProperty('statusCode', 404);
 
     await app.close();
   });
@@ -53,6 +56,28 @@ describe('static frontend serving', () => {
     const res = await app.inject({ method: 'GET', url: '/api/does-not-exist' });
     expect(res.statusCode).toBe(404);
     expect(res.json()).toEqual({ error: 'not found' });
+
+    await app.close();
+    fs.rmSync(distDir, { recursive: true, force: true });
+  });
+
+  it('returns JSON 404 for non-GET requests to unmatched non-/api routes when dist dir is configured', async () => {
+    const distDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fumarende-dist-'));
+    fs.writeFileSync(path.join(distDir, 'index.html'), '<html>fumarende</html>');
+
+    const app = await buildApp(new Database(':memory:'), distDir);
+
+    const postRes = await app.inject({ method: 'POST', url: '/unknown-route' });
+    expect(postRes.statusCode).toBe(404);
+    expect(postRes.json()).toEqual({ error: 'not found' });
+
+    const putRes = await app.inject({ method: 'PUT', url: '/another-unknown' });
+    expect(putRes.statusCode).toBe(404);
+    expect(putRes.json()).toEqual({ error: 'not found' });
+
+    const deleteRes = await app.inject({ method: 'DELETE', url: '/yet-another' });
+    expect(deleteRes.statusCode).toBe(404);
+    expect(deleteRes.json()).toEqual({ error: 'not found' });
 
     await app.close();
     fs.rmSync(distDir, { recursive: true, force: true });

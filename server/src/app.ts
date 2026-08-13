@@ -37,11 +37,12 @@ export async function buildApp(
         reply.code(404).send({ error: 'not found' });
         return;
       }
+      // Only serve index.html for GET requests
+      if (request.method !== 'GET') {
+        reply.code(404).send({ error: 'not found' });
+        return;
+      }
       reply.sendFile('index.html');
-    });
-  } else {
-    app.setNotFoundHandler((request, reply) => {
-      reply.code(404).send({ error: 'not found' });
     });
   }
 

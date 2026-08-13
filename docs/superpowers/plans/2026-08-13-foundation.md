@@ -1008,6 +1008,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Create: `server/src/auth/require-auth.ts`
 - Create: `server/src/auth/routes.ts`
 - Modify: `server/src/app.ts`
+- Modify: `server/src/index.ts`
+- Modify: `server/src/app.test.ts`
 - Test: `server/src/auth/routes.test.ts`
 
 **Interfaces:**

@@ -7,7 +7,7 @@ export function formatCentsUSD(cents: number): string {
 }
 
 export function parseCentsFromInput(value: string): number {
-  const normalized = value.replace(',', '.');
+  const normalized = value.replace(/\./g, '').replace(',', '.');
   const amount = Number.parseFloat(normalized);
   if (Number.isNaN(amount)) return NaN;
   return Math.round(amount * 100);

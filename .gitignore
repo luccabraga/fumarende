@@ -1,0 +1,20 @@
+node_modules/
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local data — never publish real financial data
+*.db
+*.sqlite
+*.sqlite3
+/data/
+
+# Brainstorming visual-companion session files
+.superpowers/
+
+# OS
+.DS_Store

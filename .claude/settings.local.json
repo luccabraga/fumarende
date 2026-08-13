@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mdfind -name \"Stacks\" -onlyin /Users/luccabraga)",
+      "Read(//Users/luccabraga/Documents/stack-project/**)",
+      "Read(//Users/luccabraga/Documents/stack-project/prototype/**)"
+    ]
+  }
+}

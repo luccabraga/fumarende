@@ -4,7 +4,7 @@ import { openDb } from './db/connection.js';
 
 const config = loadConfig();
 const db = openDb(config.dbPath);
-const app = await buildApp(db);
+const app = await buildApp(db, config.frontendDistDir);
 
 try {
   await app.listen({ port: config.port, host: '0.0.0.0' });

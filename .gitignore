@@ -2,6 +2,9 @@ node_modules/
 dist/
 build/
 
+# Local Claude Code session settings
+.claude/settings.local.json
+
 # Environment / secrets
 .env
 .env.*

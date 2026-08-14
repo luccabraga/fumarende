@@ -38,6 +38,16 @@ export function ReceitasPage() {
     }
   }
 
+  async function handleDelete(id: number) {
+    setError(null);
+    try {
+      await api.deleteIncome(id);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    }
+  }
+
   return (
     <div>
       <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 20 }}>Receitas</h1>
@@ -101,6 +111,21 @@ export function ReceitasPage() {
             <span>{entry.description ?? '—'}</span>
             <span style={{ color: 'var(--text2)' }}>{entry.date}</span>
             <span style={{ fontFamily: 'var(--mono)' }}>{formatCentsBRL(entry.amountBrlCents)}</span>
+            <button
+              type="button"
+              onClick={() => handleDelete(entry.id)}
+              aria-label={`Excluir lançamento de ${entry.date}`}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                fontSize: 12.5,
+                color: 'var(--text3)',
+                cursor: 'pointer',
+              }}
+            >
+              Excluir
+            </button>
           </div>
         ))}
       </div>

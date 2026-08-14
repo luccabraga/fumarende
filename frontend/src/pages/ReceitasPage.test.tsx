@@ -61,4 +61,58 @@ describe('ReceitasPage', () => {
     );
     expect(await screen.findByText('Novo lançamento')).toBeInTheDocument();
   });
+
+  it('deletes an entry and refreshes the list', async () => {
+    const listSpy = vi
+      .spyOn(api, 'listIncome')
+      .mockResolvedValueOnce([
+        {
+          id: 7,
+          date: '2026-08-03',
+          amountBrlCents: 250000,
+          amountUsdCents: null,
+          description: 'Lançamento errado',
+          source: null,
+          exchangeContractId: null,
+          notes: null,
+        },
+      ])
+      .mockResolvedValueOnce([]);
+    const deleteSpy = vi.spyOn(api, 'deleteIncome').mockResolvedValue({ ok: true });
+
+    render(<ReceitasPage />);
+    expect(await screen.findByText('Lançamento errado')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Excluir lançamento de 2026-08-03' }));
+
+    await waitFor(() => expect(deleteSpy).toHaveBeenCalledWith(7));
+    await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(screen.queryByText('Lançamento errado')).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText('Nenhum lançamento ainda.')).toBeInTheDocument();
+  });
+
+  it('shows an error when the delete request fails', async () => {
+    vi.spyOn(api, 'listIncome').mockResolvedValue([
+      {
+        id: 9,
+        date: '2026-08-04',
+        amountBrlCents: 1000,
+        amountUsdCents: null,
+        description: 'Não apaga',
+        source: null,
+        exchangeContractId: null,
+        notes: null,
+      },
+    ]);
+    vi.spyOn(api, 'deleteIncome').mockRejectedValue(new Error('unauthorized'));
+
+    render(<ReceitasPage />);
+    expect(await screen.findByText('Não apaga')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Excluir lançamento de 2026-08-04' }));
+
+    expect(await screen.findByText('unauthorized')).toBeInTheDocument();
+  });
 });

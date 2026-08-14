@@ -59,6 +59,87 @@ describe('income routes', () => {
     await app.close();
   });
 
+  it('accepts a valid integer amountUsdCents', async () => {
+    const { app, sessionCookie } = await authedApp();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/income',
+      cookies: { session: sessionCookie },
+      payload: { date: '2026-08-10', amountBrlCents: 300000, amountUsdCents: 60000 },
+    });
+    expect(res.statusCode).toBe(201);
+
+    const listRes = await app.inject({
+      method: 'GET',
+      url: '/api/income',
+      cookies: { session: sessionCookie },
+    });
+    expect(listRes.json()[0]).toMatchObject({ amountUsdCents: 60000 });
+
+    await app.close();
+  });
+
+  it('rejects a non-integer or non-numeric amountUsdCents', async () => {
+    const { app, sessionCookie } = await authedApp();
+
+    for (const amountUsdCents of [12.75, 'abc', true, {}]) {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/income',
+        cookies: { session: sessionCookie },
+        payload: { date: '2026-08-10', amountBrlCents: 300000, amountUsdCents },
+      });
+      expect(res.statusCode, `amountUsdCents=${JSON.stringify(amountUsdCents)}`).toBe(400);
+    }
+
+    // Nothing should have been stored.
+    const listRes = await app.inject({
+      method: 'GET',
+      url: '/api/income',
+      cookies: { session: sessionCookie },
+    });
+    expect(listRes.json()).toHaveLength(0);
+
+    await app.close();
+  });
+
+  it('allows an omitted or null amountUsdCents', async () => {
+    const { app, sessionCookie } = await authedApp();
+
+    const nullRes = await app.inject({
+      method: 'POST',
+      url: '/api/income',
+      cookies: { session: sessionCookie },
+      payload: { date: '2026-08-10', amountBrlCents: 300000, amountUsdCents: null },
+    });
+    expect(nullRes.statusCode).toBe(201);
+
+    const omittedRes = await app.inject({
+      method: 'POST',
+      url: '/api/income',
+      cookies: { session: sessionCookie },
+      payload: { date: '2026-08-11', amountBrlCents: 400000 },
+    });
+    expect(omittedRes.statusCode).toBe(201);
+
+    await app.close();
+  });
+
+  it('rejects a non-integer exchangeContractId', async () => {
+    const { app, sessionCookie } = await authedApp();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/income',
+      cookies: { session: sessionCookie },
+      payload: { date: '2026-08-10', amountBrlCents: 300000, exchangeContractId: 1.5 },
+    });
+    expect(res.statusCode).toBe(400);
+
+    await app.close();
+  });
+
   it('soft-deletes an entry so it no longer appears in the list', async () => {
     const { app, sessionCookie } = await authedApp();
 

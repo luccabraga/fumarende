@@ -13,6 +13,16 @@ interface CreateIncomeBody {
   notes?: string | null;
 }
 
+/**
+ * Optional numeric fields are genuinely optional, so null/undefined pass.
+ * Anything else present must be a real integer — money is always integer
+ * cents, and SQLite's loose type affinity would happily store 12.75 or
+ * "abc" in an INTEGER column if we did not check here.
+ */
+function isOptionalInteger(value: unknown): boolean {
+  return value === undefined || value === null || Number.isInteger(value);
+}
+
 export function registerIncomeRoutes(app: FastifyInstance, db: Database.Database): void {
   app.get('/api/income', { preHandler: requireAuth(db) }, async () => listIncome(db));
 
@@ -26,6 +36,12 @@ export function registerIncomeRoutes(app: FastifyInstance, db: Database.Database
       }
       if (!body.date) {
         return reply.code(400).send({ error: 'date is required' });
+      }
+      if (!isOptionalInteger(body.amountUsdCents)) {
+        return reply.code(400).send({ error: 'amountUsdCents must be an integer' });
+      }
+      if (!isOptionalInteger(body.exchangeContractId)) {
+        return reply.code(400).send({ error: 'exchangeContractId must be an integer' });
       }
 
       const id = createIncome(db, body as NewIncomeEntry);

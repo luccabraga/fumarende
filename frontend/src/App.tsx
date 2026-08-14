@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
@@ -8,13 +8,16 @@ import { NavShell } from './components/NavShell.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
 
 function Router() {
-  const { passwordSet } = useAuth();
+  const { passwordSet, authenticated } = useAuth();
   if (passwordSet === null) return null;
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/login"
+          element={authenticated ? <Navigate to="/" replace /> : <LoginPage />}
+        />
         <Route element={<ProtectedRoute />}>
           <Route element={<NavShell />}>
             <Route path="/" element={<DashboardPage />} />

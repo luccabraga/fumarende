@@ -5,10 +5,9 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NODE_PATH="$(command -v node)" || { echo "node not found on PATH" >&2; exit 1; }
 PLIST_DEST="$HOME/Library/LaunchAgents/com.lucca.fumarende.plist"
 
-if [[ -z "$NODE_PATH" ]]; then
-  echo "node not found on PATH" >&2
-  exit 1
-fi
+# ~/Library/LaunchAgents does not exist on a fresh macOS account, and the
+# redirect below would fail the whole script under `set -euo pipefail`.
+mkdir -p "$(dirname "$PLIST_DEST")"
 
 sed \
   -e "s#__NODE_PATH__#${NODE_PATH}#g" \

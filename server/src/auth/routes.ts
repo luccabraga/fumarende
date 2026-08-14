@@ -5,6 +5,7 @@ import { hashPassword, verifyPassword } from './password.js';
 import { createSession, deleteSession, verifySession } from './session.js';
 
 const PASSWORD_KEY = 'password_hash';
+const MIN_PASSWORD_LENGTH = 8;
 const COOKIE_OPTIONS = {
   path: '/',
   httpOnly: true,
@@ -29,7 +30,16 @@ export function registerAuthRoutes(app: FastifyInstance, db: Database.Database):
       return reply.code(409).send({ error: 'password already set' });
     }
 
-    setSetting(db, PASSWORD_KEY, hashPassword(request.body.password));
+    // Setup runs exactly once and there is no password-change route, so a
+    // blank or trivial password here would be permanent.
+    const password = request.body?.password;
+    if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
+      return reply
+        .code(400)
+        .send({ error: `password must be at least ${MIN_PASSWORD_LENGTH} characters` });
+    }
+
+    setSetting(db, PASSWORD_KEY, hashPassword(password));
     const { token } = createSession(db);
     reply.setCookie('session', token, COOKIE_OPTIONS);
     return { ok: true };

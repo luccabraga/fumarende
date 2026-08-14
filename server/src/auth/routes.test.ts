@@ -35,6 +35,61 @@ describe('auth routes', () => {
     await app.close();
   });
 
+  it('rejects a setup password shorter than 8 characters', async () => {
+    for (const password of ['', 'short', '1234567']) {
+      const app = await buildApp(freshDb());
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/auth/setup',
+        payload: { password },
+      });
+      expect(res.statusCode, `password=${JSON.stringify(password)}`).toBe(400);
+      expect(res.json().error).toContain('at least 8 characters');
+      expect(res.cookies.some((c) => c.name === 'session')).toBe(false);
+
+      // The rejected attempt must not have consumed the one-shot setup.
+      const statusRes = await app.inject({ method: 'GET', url: '/api/auth/status' });
+      expect(statusRes.json()).toEqual({ passwordSet: false, authenticated: false });
+
+      await app.close();
+    }
+  });
+
+  it('rejects a setup body with a missing or non-string password', async () => {
+    const app = await buildApp(freshDb());
+
+    const missing = await app.inject({
+      method: 'POST',
+      url: '/api/auth/setup',
+      payload: {},
+    });
+    expect(missing.statusCode).toBe(400);
+
+    const nonString = await app.inject({
+      method: 'POST',
+      url: '/api/auth/setup',
+      payload: { password: 12345678 },
+    });
+    expect(nonString.statusCode).toBe(400);
+
+    await app.close();
+  });
+
+  it('accepts a setup password of exactly 8 characters', async () => {
+    const app = await buildApp(freshDb());
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/setup',
+      payload: { password: '12345678' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.cookies.some((c) => c.name === 'session')).toBe(true);
+
+    await app.close();
+  });
+
   it('login succeeds with the right password and fails with the wrong one', async () => {
     const app = await buildApp(freshDb());
     await app.inject({

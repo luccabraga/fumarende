@@ -38,6 +38,8 @@ export function LoginPage() {
           style={{ width: '100%', marginBottom: 12 }}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={8}
         />
         <button type="submit" className="button-primary" style={{ width: '100%' }}>
           {isSetupMode ? 'Criar' : 'Entrar'}

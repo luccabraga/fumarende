@@ -52,3 +52,15 @@ export function parseCentsFromInput(value: string): number {
   const cents = fractionPart.length === 1 ? Number(fractionPart) * 10 : Number(fractionPart);
   return whole * 100 + cents;
 }
+
+/**
+ * Parses a plain exchange rate: "5.0994" or "5,0994" -> 5.0994.
+ * Rates have no thousands grouping (they are < 100). NaN on anything else.
+ */
+export function parseRate(value: string): number {
+  const trimmed = value.trim();
+  if (trimmed === '') return NaN;
+  const normalized = trimmed.replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(normalized)) return NaN;
+  return Number(normalized);
+}

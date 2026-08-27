@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCentsBRL, formatCentsUSD, parseCentsFromInput } from './money.js';
+import { formatCentsBRL, formatCentsUSD, parseCentsFromInput, parseRate } from './money.js';
 
 describe('money.ts', () => {
   describe('parseCentsFromInput', () => {
@@ -49,6 +49,26 @@ describe('money.ts', () => {
       expect(Number.isNaN(parseCentsFromInput('12.34,56'))).toBe(true);
       expect(Number.isNaN(parseCentsFromInput('1000,'))).toBe(true);
       expect(Number.isNaN(parseCentsFromInput('R$ 10,00'))).toBe(true);
+    });
+  });
+
+  describe('parseRate', () => {
+    it('parses a dot decimal like "5.0994"', () => {
+      expect(parseRate('5.0994')).toBe(5.0994);
+    });
+
+    it('parses a comma decimal like "5,0994"', () => {
+      expect(parseRate('5,0994')).toBe(5.0994);
+    });
+
+    it('parses a plain integer like "5"', () => {
+      expect(parseRate('5')).toBe(5);
+    });
+
+    it('returns NaN for non-numeric or empty input', () => {
+      expect(parseRate('abc')).toBeNaN();
+      expect(parseRate('')).toBeNaN();
+      expect(parseRate('5.0.9')).toBeNaN();
     });
   });
 

@@ -18,3 +18,18 @@
       relaunched automatically within a few seconds (`KeepAlive`).
 - [ ] Rebooting the machine brings the server back up without any manual
       step (`RunAtLoad`).
+
+## Câmbio
+
+- [ ] Câmbio page loads from the nav (no longer "em breve").
+- [ ] Typing USD amount + contracted rate shows the live preview
+      (BRL bruto / IOF+tarifas / BRL líquido / VET / spread).
+- [ ] Leaving PTAX blank shows "— (sem PTAX)" and still saves.
+- [ ] A submitted contract appears in the list immediately with its VET,
+      and the summary card totals update.
+- [ ] Deleting a contract removes it from the list and the summary
+      without a manual refresh.
+- [ ] An invalid entry (blank USD, non-numeric rate) shows an inline
+      error and saves nothing.
+- [ ] Receitas: an entry with a "Valor (US$)" shows the USD amount in
+      parentheses next to the BRL amount.

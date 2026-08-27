@@ -19,5 +19,9 @@ build/
 # Brainstorming visual-companion session files
 .superpowers/
 
+# launchd runtime logs
+launchd.out.log
+launchd.err.log
+
 # OS
 .DS_Store

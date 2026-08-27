@@ -4,10 +4,19 @@ export interface AuthStatus {
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  // Only advertise a JSON body when we actually send one. Fastify rejects a
+  // request that declares `Content-Type: application/json` with an empty body
+  // (FST_ERR_CTP_EMPTY_JSON_BODY), which would break bodyless calls like
+  // deleteIncome() and logout().
+  const headers = new Headers(init?.headers);
+  if (init?.body !== undefined && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   const response = await fetch(url, {
     ...init,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers,
   });
 
   if (!response.ok) {

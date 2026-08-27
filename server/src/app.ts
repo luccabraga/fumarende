@@ -23,6 +23,29 @@ export async function buildApp(
   runMigrations(db);
 
   const app = Fastify({ logger: true });
+
+  // Defense in depth: a bodyless request (logout, DELETE) may still arrive with
+  // `Content-Type: application/json` set by a generic client wrapper. Fastify's
+  // default JSON parser rejects that with FST_ERR_CTP_EMPTY_JSON_BODY before the
+  // route runs, so treat an empty body as "no body" instead.
+  app.addContentTypeParser(
+    'application/json',
+    { parseAs: 'string' },
+    (_req, body, done) => {
+      const text = (body as string).trim();
+      if (text === '') {
+        done(null, undefined);
+        return;
+      }
+      try {
+        done(null, JSON.parse(text));
+      } catch (err) {
+        (err as { statusCode?: number }).statusCode = 400;
+        done(err as Error, undefined);
+      }
+    },
+  );
+
   await app.register(cookie);
 
   app.get('/api/health', async () => ({ ok: true }));

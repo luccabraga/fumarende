@@ -167,4 +167,36 @@ describe('income routes', () => {
 
     await app.close();
   });
+
+  it('deletes when the client sends an empty body with a JSON content-type', async () => {
+    // This is exactly what the browser's fetch wrapper used to send on every
+    // request. Fastify's default JSON parser rejects it with
+    // FST_ERR_CTP_EMPTY_JSON_BODY before the route runs.
+    const { app, sessionCookie } = await authedApp();
+
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/income',
+      cookies: { session: sessionCookie },
+      payload: { date: '2026-08-10', amountBrlCents: 100 },
+    });
+    const { id } = createRes.json();
+
+    const deleteRes = await app.inject({
+      method: 'DELETE',
+      url: `/api/income/${id}`,
+      cookies: { session: sessionCookie },
+      headers: { 'content-type': 'application/json' },
+    });
+    expect(deleteRes.statusCode).toBe(200);
+
+    const listRes = await app.inject({
+      method: 'GET',
+      url: '/api/income',
+      cookies: { session: sessionCookie },
+    });
+    expect(listRes.json()).toHaveLength(0);
+
+    await app.close();
+  });
 });

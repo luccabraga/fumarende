@@ -63,10 +63,49 @@ export function createIncome(input: {
   amountBrlCents: number;
   amountUsdCents?: number | null;
   description?: string | null;
+  source?: string | null;
 }): Promise<{ id: number }> {
   return request('/api/income', { method: 'POST', body: JSON.stringify(input) });
 }
 
 export function deleteIncome(id: number): Promise<{ ok: true }> {
   return request(`/api/income/${id}`, { method: 'DELETE' });
+}
+
+export interface ExchangeContract {
+  id: number;
+  date: string;
+  institution: string;
+  operationType: string;
+  amountUsdCents: number;
+  contractedRate: number;
+  ptaxRate: number | null;
+  iofCents: number;
+  bankFeeCents: number;
+  netBrlCents: number;
+  sourcePdfRef: string | null;
+  notes: string | null;
+}
+
+export function listExchangeContracts(): Promise<ExchangeContract[]> {
+  return request('/api/exchange-contracts');
+}
+
+export function createExchangeContract(input: {
+  date: string;
+  institution: string;
+  operationType: 'compra' | 'venda';
+  amountUsdCents: number;
+  contractedRate: number;
+  ptaxRate?: number | null;
+  iofCents?: number;
+  bankFeeCents?: number;
+  sourcePdfRef?: string | null;
+  notes?: string | null;
+}): Promise<{ id: number }> {
+  return request('/api/exchange-contracts', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function deleteExchangeContract(id: number): Promise<{ ok: true }> {
+  return request(`/api/exchange-contracts/${id}`, { method: 'DELETE' });
 }

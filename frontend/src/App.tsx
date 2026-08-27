@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
 import { ReceitasPage } from './pages/ReceitasPage.js';
+import { CambioPage } from './pages/CambioPage.js';
 import { PlaceholderPage } from './pages/PlaceholderPage.js';
 import { NavShell } from './components/NavShell.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
@@ -22,7 +23,7 @@ function Router() {
           <Route element={<NavShell />}>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/receitas" element={<ReceitasPage />} />
-            <Route path="/cambio" element={<PlaceholderPage title="Câmbio" />} />
+            <Route path="/cambio" element={<CambioPage />} />
             <Route path="/gastos" element={<PlaceholderPage title="Gastos" />} />
             <Route path="/parcelas" element={<PlaceholderPage title="Parcelas" />} />
             <Route path="/reserva" element={<PlaceholderPage title="Reserva" />} />

@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import * as api from '../lib/api.js';
-import { formatCentsBRL, parseCentsFromInput } from '../lib/money.js';
+import { formatCentsBRL, formatCentsUSD, parseCentsFromInput } from '../lib/money.js';
 
 export function ReceitasPage() {
   const [entries, setEntries] = useState<api.IncomeEntry[]>([]);
   const [date, setDate] = useState('');
   const [amount, setAmount] = useState('');
+  const [amountUsd, setAmountUsd] = useState('');
   const [description, setDescription] = useState('');
+  const [source, setSource] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
@@ -27,11 +29,29 @@ export function ReceitasPage() {
       return;
     }
 
+    let amountUsdCents: number | null = null;
+    if (amountUsd.trim() !== '') {
+      const parsed = parseCentsFromInput(amountUsd);
+      if (Number.isNaN(parsed) || parsed <= 0) {
+        setError('Valor em USD inválido');
+        return;
+      }
+      amountUsdCents = parsed;
+    }
+
     try {
-      await api.createIncome({ date, amountBrlCents, description: description || null });
+      await api.createIncome({
+        date,
+        amountBrlCents,
+        amountUsdCents,
+        description: description || null,
+        source: source || null,
+      });
       setDate('');
       setAmount('');
+      setAmountUsd('');
       setDescription('');
+      setSource('');
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
@@ -78,6 +98,18 @@ export function ReceitasPage() {
           />
         </div>
         <div>
+          <label htmlFor="amount-usd" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+            Valor (US$)
+          </label>
+          <input
+            id="amount-usd"
+            type="text"
+            className="field-input"
+            value={amountUsd}
+            onChange={(e) => setAmountUsd(e.target.value)}
+          />
+        </div>
+        <div>
           <label htmlFor="description" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
             Descrição
           </label>
@@ -87,6 +119,18 @@ export function ReceitasPage() {
             className="field-input"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="source" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+            Origem
+          </label>
+          <input
+            id="source"
+            type="text"
+            className="field-input"
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
           />
         </div>
         <button type="submit" className="button-primary">
@@ -110,7 +154,10 @@ export function ReceitasPage() {
           >
             <span>{entry.description ?? '—'}</span>
             <span style={{ color: 'var(--text2)' }}>{entry.date}</span>
-            <span style={{ fontFamily: 'var(--mono)' }}>{formatCentsBRL(entry.amountBrlCents)}</span>
+            <span style={{ fontFamily: 'var(--mono)' }}>
+              {formatCentsBRL(entry.amountBrlCents)}
+              {entry.amountUsdCents !== null && ` (${formatCentsUSD(entry.amountUsdCents)})`}
+            </span>
             <button
               type="button"
               onClick={() => handleDelete(entry.id)}

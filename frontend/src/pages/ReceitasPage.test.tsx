@@ -56,10 +56,36 @@ describe('ReceitasPage', () => {
       expect(createSpy).toHaveBeenCalledWith({
         date: '2026-08-12',
         amountBrlCents: 100000,
+        amountUsdCents: null,
         description: 'Novo lançamento',
+        source: null,
       }),
     );
     expect(await screen.findByText('Novo lançamento')).toBeInTheDocument();
+  });
+
+  it('passes the optional USD amount and source through to createIncome', async () => {
+    vi.spyOn(api, 'listIncome').mockResolvedValue([]);
+    const createSpy = vi.spyOn(api, 'createIncome').mockResolvedValue({ id: 3 });
+
+    render(<ReceitasPage />);
+    await waitFor(() => expect(api.listIncome).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-08-20' } });
+    fireEvent.change(screen.getByLabelText('Valor (R$)'), { target: { value: '5000' } });
+    fireEvent.change(screen.getByLabelText('Valor (US$)'), { target: { value: '1000' } });
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'Salário' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+    await waitFor(() =>
+      expect(createSpy).toHaveBeenCalledWith({
+        date: '2026-08-20',
+        amountBrlCents: 500000,
+        amountUsdCents: 100000,
+        description: null,
+        source: 'Salário',
+      }),
+    );
   });
 
   it('deletes an entry and refreshes the list', async () => {

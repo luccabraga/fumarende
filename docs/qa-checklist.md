@@ -79,3 +79,19 @@
 - [ ] "Excluir" removes the card.
 - [ ] Projetos Especiais has a "Motivação" field that shows as an italic
       quote on the card; Metas does not.
+
+## Análise
+
+- [ ] Análise page loads from the nav (no longer "em breve").
+- [ ] Resumo shows Receitas, Gastos, Saldo, and the Essencial /
+      Não-essencial split from the real data.
+- [ ] "Gastos por categoria" shows one bar per category, largest first,
+      widths proportional.
+- [ ] "Projeção 12 meses" shows a year-end total and a rising line when
+      a monthly savings target is set; shows the "Configure sua meta
+      mensal" note when it is 0.
+- [ ] "Cenários" lists each não-essencial category with a 0–100% slider;
+      moving a slider updates the "Corte total …/mês · … em 12 meses"
+      line.
+- [ ] With no expenses, the category and cenários sections show their
+      empty-state text.

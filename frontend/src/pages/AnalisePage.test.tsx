@@ -33,6 +33,7 @@ beforeEach(() => {
       amountCents: 20_000,
       category: 'Delivery',
       type: 'nao-essencial',
+      paymentMethod: 'Crédito',
       installmentNumber: null,
       installmentTotal: null,
       installmentGroupId: null,

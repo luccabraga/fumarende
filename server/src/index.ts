@@ -4,7 +4,10 @@ import { openDb } from './db/connection.js';
 
 const config = loadConfig();
 const db = openDb(config.dbPath);
-const app = await buildApp(db, config.frontendDistDir);
+const app = await buildApp(db, config.frontendDistDir, {
+  dbPath: config.dbPath,
+  backupDir: config.backupDir,
+});
 
 try {
   await app.listen({ port: config.port, host: '0.0.0.0' });

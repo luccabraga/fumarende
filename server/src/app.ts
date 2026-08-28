@@ -8,6 +8,7 @@ import { registerAuthRoutes } from './auth/routes.js';
 import { registerIncomeRoutes } from './routes/income.js';
 import { registerExchangeRoutes } from './routes/exchange.js';
 import { registerExpenseRoutes } from './routes/expenses.js';
+import { registerFixedExpenseRoutes } from './routes/fixed-expenses.js';
 import { runMigrations } from './db/migrate.js';
 
 declare module 'fastify' {
@@ -55,6 +56,7 @@ export async function buildApp(
   registerIncomeRoutes(app, db);
   registerExchangeRoutes(app, db);
   registerExpenseRoutes(app, db);
+  registerFixedExpenseRoutes(app, db);
 
   if (frontendDistDir && fs.existsSync(path.join(frontendDistDir, 'index.html'))) {
     await app.register(fastifyStatic, { root: frontendDistDir });

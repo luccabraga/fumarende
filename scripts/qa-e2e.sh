@@ -216,6 +216,16 @@ as  "unmark month -> 200" 200 "$(code DELETE "/api/monthly-close/$DM")"
 as  "mark bad month -> 400" 400 "$(code PUT /api/monthly-close/2026-6)"
 
 echo
+echo "== Dashboard =="
+as  "dashboard unauth -> 401" 401 "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/dashboard")"
+D="$(body GET /api/dashboard)"
+aeq "dashboard month is YYYY-MM" "true" "$(echo "$D" | jq -r '.month | test("^[0-9]{4}-[0-9]{2}$")')"
+aeq "dashboard evolution has 6 months" "6" "$(echo "$D" | jq '.evolution | length')"
+aeq "dashboard alerts is an array" "array" "$(echo "$D" | jq -r '.alerts | type')"
+aeq "dashboard income is positive after the seed" "true" "$(echo "$D" | jq '.income.currentCents > 0')"
+aeq "dashboard shows an active installment after the seed" "true" "$(echo "$D" | jq '.installments.activeGroups >= 1')"
+
+echo
 echo "== Análise (input endpoints the page reads) =="
 for ep in /api/income /api/expenses /api/emergency-fund /api/savings-target/2026-08 /api/goals /api/special-projects; do
   as "GET $ep -> 200 (cookie)" 200 "$(code GET "$ep")"

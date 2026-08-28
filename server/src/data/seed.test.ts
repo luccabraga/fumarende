@@ -30,8 +30,17 @@ describe('seedTestData', () => {
     expect(listTargets(db, 'special_projects').length).toBeGreaterThan(0);
     expect(listQuotes(db).length).toBe(3);
 
+    // the five one-off / recurring expenses span the three seeded months;
+    // the 3x installment starting in the current month extends into the
+    // two following months
     const months = new Set(listExpenses(db).map((e) => e.date.slice(0, 7)));
-    expect([...months].sort()).toEqual(['2026-06', '2026-07', '2026-08']);
+    expect([...months].sort()).toEqual([
+      '2026-06',
+      '2026-07',
+      '2026-08',
+      '2026-09',
+      '2026-10',
+    ]);
 
     expect(listTargets(db, 'goals').some((g) => g.currentCents >= g.targetCents)).toBe(true);
   });

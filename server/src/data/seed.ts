@@ -96,9 +96,10 @@ export function seedTestData(db: Database.Database, now: Date = new Date()): See
     upsertQuote(db, { month: monthKey(m), rate: rates[i], salaryUsdCents: 350_000 });
   });
 
-  // one 3x installment starting in the earliest month
+  // one 3x installment starting in the current month, so it is still
+  // in progress (two of its three rows land in future months)
   createExpense(db, {
-    date: dayIn(m2, 8),
+    date: dayIn(m0, 8),
     description: 'Notebook',
     amountCents: 600_000,
     category: 'Outros',

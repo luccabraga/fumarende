@@ -183,3 +183,19 @@
 - [ ] The page's Diagnóstico card, download button, import file flow,
       danger-zone phrase gate, and monthly-close checkboxes work in the
       browser (all four are component-tested; a manual pass is optional).
+
+## Dashboard
+
+- [x] `GET /api/dashboard` → 401 unauth; authenticated → a summary with
+      a `YYYY-MM` `month`, a 6-entry `evolution`, and an `alerts` array
+      (e2e).
+- [x] After `seed-test`, the summary's month income and expenses are
+      `> 0` and `installments.activeGroups >= 1` (e2e).
+- [x] `dashboardSummary` — month totals, essencial split, previous-month
+      deltas, byCategory sort, savings-target / thin-reserve /
+      over-spend / installment-spike / câmbio-spread-drift alerts,
+      6-month evolution, monthly-close read — 9 unit tests.
+- [ ] The stat cards, delta arrows, alert tints, category bars,
+      evolution lines, recent-expense rows, goal bars, and the
+      "Fechamento do mês" toggle render in the browser (component-tested;
+      manual pass optional).

@@ -317,11 +317,12 @@ TDD — one failing test at a time.
 **Server**
 
 - `server/src/targets/progress.test.ts`:
-  - `monthsUntil('2026-11-01', new Date(2026, 7, 15))` → `3`;
-    `monthsUntil(null, ...)` → `null`; `monthsUntil('2026-07-01', new
-    Date(2026, 7, 15))` (past) → `null`;
-    `monthsUntil('2026-09-30', new Date(2026, 7, 15))` → `1` (same
-    partial month still counts as 1... actually Aug→Sep = 1).
+  - with `today = new Date(2026, 7, 15)` (15 Aug 2026):
+    `monthsUntil('2026-11-01', today)` → `3`;
+    `monthsUntil('2026-09-30', today)` → `1`;
+    `monthsUntil(null, today)` → `null`;
+    `monthsUntil('2026-07-01', today)` (past) → `null`;
+    `monthsUntil('2026-08-31', today)` (same month) → `null`.
   - `targetProgress({ targetCents: 100_000, currentCents: 25_000,
     targetDate: '2026-11-01' }, new Date(2026, 7, 15))` →
     `remainingCents 75_000`, `progressPct 25`, `suggestedMonthlyCents

@@ -9,6 +9,7 @@ import { ParcelasPage } from './pages/ParcelasPage.js';
 import { ReservaPage } from './pages/ReservaPage.js';
 import { MetasPage } from './pages/MetasPage.js';
 import { ProjetosPage } from './pages/ProjetosPage.js';
+import { AnalisePage } from './pages/AnalisePage.js';
 import { PlaceholderPage } from './pages/PlaceholderPage.js';
 import { NavShell } from './components/NavShell.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
@@ -34,7 +35,7 @@ function Router() {
             <Route path="/reserva" element={<ReservaPage />} />
             <Route path="/metas" element={<MetasPage />} />
             <Route path="/projetos" element={<ProjetosPage />} />
-            <Route path="/analise" element={<PlaceholderPage title="Análise" />} />
+            <Route path="/analise" element={<AnalisePage />} />
             <Route path="/historico-dolar" element={<PlaceholderPage title="Histórico Dólar" />} />
             <Route path="/backup" element={<PlaceholderPage title="Backup & Dados" />} />
           </Route>

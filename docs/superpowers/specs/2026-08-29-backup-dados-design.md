@@ -361,16 +361,15 @@ Sections (each a `.card`):
 
 - Wrong confirmation phrase → `400 { error }` before any backup or
   mutation.
-- Malformed import payload → `importData` throws; the route catches and
-  returns `400 { error }`; nothing is backed up or changed (the backup
-  happens only after basic reachability, but before `importData` — so a
-  malformed payload still produces a harmless extra backup file; that is
-  acceptable and documented).
-  *Refinement:* validate the payload shape in the route **before**
-  taking the backup, so a bad file makes no backup. The route does a
-  cheap check (`body?.version === 1 && body.tables && typeof body.tables
-  === 'object'`) first, then backs up, then calls `importData` for the
-  full per-table validation.
+- Malformed import payload: the `POST /api/data/import` route does a
+  cheap shape check first — `body?.version === 1 && body.tables &&
+  typeof body.tables === 'object'` — and returns `400 { error }` on
+  failure **before** taking a backup, so a bad file changes nothing and
+  leaves no backup. Only after that check does it back up and call
+  `importData`, whose per-table validation `throw` is also caught and
+  returned as `400 { error }` (this later failure is inside the
+  transaction, which rolls back, so the data is intact — but a backup
+  file was written, which is harmless).
 - The frontend `request()` helper throws `Error(body.error)` on non-2xx;
   every section catches and renders `.error-text`.
 - A DB with no `dataPaths` (tests) → `backupPath: null`,

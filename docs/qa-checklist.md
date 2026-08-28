@@ -65,3 +65,17 @@
 - [ ] A month's target does not change after the fact when more income
       is added later (frozen on first view).
 - [ ] Deleting a history entry updates the balance without a refresh.
+
+## Metas + Projetos Especiais
+
+- [ ] Both pages load from the nav (no longer "em breve").
+- [ ] Creating a goal shows a card with the current/target amounts, a
+      progress bar, and a "Faltam …" line.
+- [ ] With a future "data alvo", the card shows a "sugestão R$ X/mês".
+- [ ] "Adicionar" raises the current amount without a manual refresh.
+- [ ] "Editar" can change the name, target, current amount and date.
+- [ ] When current reaches the target the card shows "Concluída" and
+      drops the suggestion line.
+- [ ] "Excluir" removes the card.
+- [ ] Projetos Especiais has a "Motivação" field that shows as an italic
+      quote on the card; Metas does not.

@@ -61,13 +61,13 @@ export function TargetSection({ api, showNotes, heading, emptyText }: TargetSect
     }
   }
 
-  const wrap =
-    <T,>(fn: (...a: T[]) => Promise<unknown>) =>
-    (...a: T[]) => {
+  function wrap<A extends unknown[]>(fn: (...a: A) => Promise<unknown>) {
+    return (...a: A) => {
       fn(...a)
         .then(refresh)
         .catch((err) => setError(err instanceof Error ? err.message : 'Erro desconhecido'));
     };
+  }
 
   return (
     <div>

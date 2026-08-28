@@ -29,14 +29,14 @@ describe('runMigrations', () => {
       'ptax_rate_cache',
       'monthly_close',
       'schema_migrations',
+      'dollar_quotes',
     ]) {
       expect(tables).toContain(expected);
     }
 
     const applied = db
-      .prepare('SELECT id FROM schema_migrations')
+      .prepare('SELECT id FROM schema_migrations ORDER BY id')
       .all() as { id: string }[];
-    expect(applied).toHaveLength(1);
-    expect(applied[0].id).toBe('001_initial_schema');
+    expect(applied.map((r) => r.id)).toEqual(['001_initial_schema', '002_dollar_quotes']);
   });
 });

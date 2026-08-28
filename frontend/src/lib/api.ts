@@ -109,3 +109,76 @@ export function createExchangeContract(input: {
 export function deleteExchangeContract(id: number): Promise<{ ok: true }> {
   return request(`/api/exchange-contracts/${id}`, { method: 'DELETE' });
 }
+
+export interface Expense {
+  id: number;
+  date: string;
+  description: string;
+  amountCents: number;
+  category: string;
+  type: string;
+  paymentMethod: string;
+  installmentNumber: number | null;
+  installmentTotal: number | null;
+  installmentGroupId: string | null;
+  notes: string | null;
+}
+
+export function listExpenses(): Promise<Expense[]> {
+  return request('/api/expenses');
+}
+
+export function createExpense(input: {
+  date: string;
+  description: string;
+  amountCents: number;
+  category: string;
+  type: 'essencial' | 'nao-essencial';
+  paymentMethod: string;
+  installmentTotal?: number | null;
+  notes?: string | null;
+}): Promise<{ ids: number[] }> {
+  return request('/api/expenses', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function deleteExpense(id: number): Promise<{ ok: true }> {
+  return request(`/api/expenses/${id}`, { method: 'DELETE' });
+}
+
+export function deleteExpenseGroup(groupId: string): Promise<{ ok: true }> {
+  return request(`/api/expenses/group/${groupId}`, { method: 'DELETE' });
+}
+
+export interface FixedExpense {
+  id: number;
+  description: string;
+  amountCents: number;
+  category: string;
+  type: string;
+  paymentMethod: string;
+}
+
+export function listFixedExpenses(): Promise<FixedExpense[]> {
+  return request('/api/fixed-expenses');
+}
+
+export function createFixedExpense(input: {
+  description: string;
+  amountCents: number;
+  category: string;
+  type: 'essencial' | 'nao-essencial';
+  paymentMethod: string;
+}): Promise<{ id: number }> {
+  return request('/api/fixed-expenses', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function deleteFixedExpense(id: number): Promise<{ ok: true }> {
+  return request(`/api/fixed-expenses/${id}`, { method: 'DELETE' });
+}
+
+export function applyFixedExpenses(month: string): Promise<{ created: number }> {
+  return request('/api/fixed-expenses/apply', {
+    method: 'POST',
+    body: JSON.stringify({ month }),
+  });
+}

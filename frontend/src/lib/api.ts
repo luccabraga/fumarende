@@ -295,3 +295,53 @@ export function upsertDollarQuote(
 export function deleteDollarQuote(month: string): Promise<{ ok: true }> {
   return request(`/api/dollar-quotes/${month}`, { method: 'DELETE' });
 }
+
+export interface Diagnostics {
+  rowCounts: Record<string, number>;
+  dbSizeBytes: number;
+  migrations: string[];
+  lastBackup: string | null;
+  backupCount: number;
+}
+
+export interface MonthCloseRow {
+  month: string;
+  reviewed: boolean;
+  reviewedAt: string | null;
+}
+
+export const EXPORT_URL = '/api/data/export';
+
+export function getDiagnostics(): Promise<Diagnostics> {
+  return request('/api/data/diagnostics');
+}
+
+export function importData(
+  payload: unknown,
+): Promise<{ backupPath: string | null; imported: Record<string, number> }> {
+  return request('/api/data/import', { method: 'POST', body: JSON.stringify(payload) });
+}
+
+export function wipeData(
+  confirm: string,
+): Promise<{ backupPath: string | null; deleted: Record<string, number> }> {
+  return request('/api/data/wipe', { method: 'POST', body: JSON.stringify({ confirm }) });
+}
+
+export function seedTestData(
+  confirm: string,
+): Promise<{ backupPath: string | null; seeded: true }> {
+  return request('/api/data/seed-test', { method: 'POST', body: JSON.stringify({ confirm }) });
+}
+
+export function listMonthlyClose(): Promise<MonthCloseRow[]> {
+  return request('/api/monthly-close');
+}
+
+export function markMonthReviewed(month: string): Promise<MonthCloseRow> {
+  return request(`/api/monthly-close/${month}`, { method: 'PUT' });
+}
+
+export function unmarkMonthReviewed(month: string): Promise<{ ok: true }> {
+  return request(`/api/monthly-close/${month}`, { method: 'DELETE' });
+}

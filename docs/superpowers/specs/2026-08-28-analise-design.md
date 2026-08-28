@@ -243,12 +243,10 @@ TDD — one failing test at a time.
     goalsSaved`; `endSavingsCents 0`.
 - `scenarioCatalog`:
   - expenses across `2026-06` and `2026-07` (2 distinct months): Lazer
-    `nao-essencial` `12_000` + `18_000` (=30_000 total), Delivery
-    `nao-essencial` `20_000`, Aluguel `essencial` `280_000` →
-    catalog `[{ Delivery, 10_000 }, { Lazer, 15_000 }]`... wait sorted
-    desc: Lazer 15_000 (30_000/2) then Delivery 10_000 (20_000/2) →
-    `[{ Lazer, 15_000 }, { Delivery, 10_000 }]`; Aluguel excluded
-    (essencial).
+    `nao-essencial` `12_000` + `18_000` (30_000 total), Delivery
+    `nao-essencial` `20_000`, Aluguel `essencial` `280_000` → catalog
+    `[{ Lazer, 15_000 }, { Delivery, 10_000 }]` (30_000/2 and 20_000/2,
+    sorted desc); Aluguel excluded (essencial).
   - no expenses → `[]`.
 - `applyCuts`:
   - catalog `[{ Lazer, 15_000 }, { Delivery, 10_000 }]`,

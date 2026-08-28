@@ -345,3 +345,33 @@ export function markMonthReviewed(month: string): Promise<MonthCloseRow> {
 export function unmarkMonthReviewed(month: string): Promise<{ ok: true }> {
   return request(`/api/monthly-close/${month}`, { method: 'DELETE' });
 }
+
+export interface DashboardSummary {
+  month: string;
+  previousMonth: string;
+  income: { currentCents: number; previousCents: number };
+  expenses: {
+    currentCents: number;
+    previousCents: number;
+    essentialCents: number;
+    nonEssentialCents: number;
+    byCategory: { category: string; cents: number }[];
+  };
+  balanceCents: number;
+  reserveBalanceCents: number;
+  savingsTarget: { targetCents: number; savedThisMonthCents: number } | null;
+  installments: {
+    nextMonthCommitmentCents: number;
+    activeGroups: number;
+    earliestEndMonth: string | null;
+  };
+  recentExpenses: { date: string; description: string; category: string; amountCents: number }[];
+  topGoals: { name: string; currentCents: number; targetCents: number; progressPct: number }[];
+  evolution: { month: string; incomeCents: number; expensesCents: number }[];
+  monthlyClose: { reviewed: boolean; reviewedAt: string | null };
+  alerts: { level: 'info' | 'warning' | 'danger'; message: string }[];
+}
+
+export function getDashboard(): Promise<DashboardSummary> {
+  return request('/api/dashboard');
+}

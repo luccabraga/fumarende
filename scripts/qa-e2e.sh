@@ -182,6 +182,20 @@ body POST /api/goals '{"name":"NoNotes","targetCents":100000,"notes":"ignored"}'
 aeq "goals ignore notes (always null)" "null" "$(body GET /api/goals | jq -r '.[0].notes')"
 
 echo
+echo "== Histórico Dólar =="
+as  "upsert 2026-06 rate 5.1 -> 200" 200 "$(code PUT /api/dollar-quotes/2026-06 '{"rate":5.1,"salaryUsdCents":500000}')"
+aeq "quote list has 1 row" "1" "$(body GET /api/dollar-quotes | jq 'length')"
+body PUT /api/dollar-quotes/2026-06 '{"rate":5.35}' >/dev/null
+DQ="$(body GET /api/dollar-quotes)"
+aeq "second upsert replaces the month (still 1 row)" "1" "$(echo "$DQ" | jq 'length')"
+aeq "replaced row has the new rate" "5.35" "$(echo "$DQ" | jq -r '.[0].rate')"
+aeq "replaced row salary cleared to null" "null" "$(echo "$DQ" | jq -r '.[0].salaryUsdCents')"
+as  "reject bad month in URL -> 400" 400 "$(code PUT /api/dollar-quotes/2026-6 '{"rate":5}')"
+as  "reject rate 0 -> 400" 400 "$(code PUT /api/dollar-quotes/2026-07 '{"rate":0}')"
+as  "delete 2026-06 -> 200" 200 "$(code DELETE /api/dollar-quotes/2026-06)"
+aeq "quote list now empty" "0" "$(body GET /api/dollar-quotes | jq 'length')"
+
+echo
 echo "== Análise (input endpoints the page reads) =="
 for ep in /api/income /api/expenses /api/emergency-fund /api/savings-target/2026-08 /api/goals /api/special-projects; do
   as "GET $ep -> 200 (cookie)" 200 "$(code GET "$ep")"

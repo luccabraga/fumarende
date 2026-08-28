@@ -143,3 +143,23 @@
       line (browser; `applyCuts` is unit-tested).
 - [ ] With no expenses, the category and cenários sections show their
       empty-state text (browser).
+
+## Histórico Dólar
+
+- [x] Migration `002_dollar_quotes` applies automatically on server
+      restart — the live DB's `schema_migrations` now has both `001` and
+      `002` and the `dollar_quotes` table exists (verified this run).
+- [x] Registering a month and re-registering it replaces the row in
+      place (one row per month); the salary clears to null when omitted
+      on the second `PUT` (e2e).
+- [x] Bad input is rejected — malformed month in the URL and `rate: 0`
+      both → 400 (e2e); the `quoteStats` derivations (average, vs-média
+      %, salário em BRL) are covered by 4 unit tests (2 server + 2
+      frontend).
+- [x] `DELETE` removes the month, tolerating an empty JSON body (e2e).
+- [ ] The rate line chart appears once two or more months are recorded
+      (browser).
+- [ ] The table shows Cotação (4 dp), Salário (US$), Salário (R$) =
+      salário × cotação, and the vs-média % (browser).
+- [ ] Leaving the salary field blank shows "—" for that month's Salário
+      columns (browser).

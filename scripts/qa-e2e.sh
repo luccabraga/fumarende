@@ -196,6 +196,26 @@ as  "delete 2026-06 -> 200" 200 "$(code DELETE /api/dollar-quotes/2026-06)"
 aeq "quote list now empty" "0" "$(body GET /api/dollar-quotes | jq 'length')"
 
 echo
+echo "== Backup & Dados =="
+aeq "diagnostics has a rowCounts object" "object" "$(body GET /api/data/diagnostics | jq -r '.rowCounts | type')"
+as  "export -> 200" 200 "$(code GET /api/data/export)"
+body POST /api/income '{"date":"2026-04-01","amountBrlCents":123456}' >/dev/null
+PRE_INCOME="$(body GET /api/income | jq 'length')"
+body GET /api/data/export > "$TMP/snap.json"
+aeq "wipe (right phrase) -> deleted object" "object" "$(body POST /api/data/wipe '{"confirm":"APAGAR TUDO"}' | jq -r '.deleted | type')"
+aeq "income empty after wipe" "0" "$(body GET /api/income | jq 'length')"
+body POST /api/data/import "$(cat "$TMP/snap.json")" >/dev/null
+aeq "income restored to its pre-wipe count after import" "$PRE_INCOME" "$(body GET /api/income | jq 'length')"
+as  "wipe (wrong phrase) -> 400" 400 "$(code POST /api/data/wipe '{"confirm":"nope"}')"
+aeq "seed-test (right phrase) -> seeded true" "true" "$(body POST /api/data/seed-test '{"confirm":"APAGAR TUDO"}' | jq -r .seeded)"
+aeq "income non-empty after seed" "true" "$(body GET /api/income | jq 'length > 0')"
+DM="$(body GET /api/monthly-close | jq -r '.[0].month')"
+aeq "mark month reviewed" "true" "$(body PUT "/api/monthly-close/$DM" | jq -r .reviewed)"
+aeq "month shows reviewed in the list" "true" "$(body GET /api/monthly-close | jq -r --arg m "$DM" 'map(select(.month==$m))[0].reviewed')"
+as  "unmark month -> 200" 200 "$(code DELETE "/api/monthly-close/$DM")"
+as  "mark bad month -> 400" 400 "$(code PUT /api/monthly-close/2026-6)"
+
+echo
 echo "== Análise (input endpoints the page reads) =="
 for ep in /api/income /api/expenses /api/emergency-fund /api/savings-target/2026-08 /api/goals /api/special-projects; do
   as "GET $ep -> 200 (cookie)" 200 "$(code GET "$ep")"

@@ -163,3 +163,23 @@
       salário × cotação, and the vs-média % (browser).
 - [ ] Leaving the salary field blank shows "—" for that month's Salário
       columns (browser).
+
+## Backup & Dados
+
+- [x] `GET /api/data/export` returns a JSON snapshot with an
+      `attachment` content-disposition; `GET /api/data/diagnostics`
+      returns a `rowCounts` object + migration list (e2e).
+- [x] Export → wipe (`confirm: APAGAR TUDO`) → import round-trips the
+      data back to its pre-wipe row count; a wrong phrase → 400 (e2e; the
+      import/export/wipe modules also have unit round-trip tests).
+- [x] `seed-test` behind the same phrase replaces all data with the
+      three-month fixture and is deterministic across runs (e2e + unit).
+- [x] `PUT`/`GET`/`DELETE /api/monthly-close/:month` mark, list, and
+      clear a month's reviewed flag; a bad month → 400 (e2e).
+- [x] Migration list, DB size, and backup count surface in diagnostics
+      (unit; verified against a real temp dir).
+- [x] `DATA_TABLES` is drift-guarded — a test fails if a migrated table
+      is not listed (covers `ptax_rate_cache`; excludes `sqlite_sequence`).
+- [ ] The page's Diagnóstico card, download button, import file flow,
+      danger-zone phrase gate, and monthly-close checkboxes work in the
+      browser (all four are component-tested; a manual pass is optional).

@@ -11,7 +11,7 @@ import { MetasPage } from './pages/MetasPage.js';
 import { ProjetosPage } from './pages/ProjetosPage.js';
 import { AnalisePage } from './pages/AnalisePage.js';
 import { HistoricoDolarPage } from './pages/HistoricoDolarPage.js';
-import { PlaceholderPage } from './pages/PlaceholderPage.js';
+import { BackupDadosPage } from './pages/BackupDadosPage.js';
 import { NavShell } from './components/NavShell.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
 
@@ -38,7 +38,7 @@ function Router() {
             <Route path="/projetos" element={<ProjetosPage />} />
             <Route path="/analise" element={<AnalisePage />} />
             <Route path="/historico-dolar" element={<HistoricoDolarPage />} />
-            <Route path="/backup" element={<PlaceholderPage title="Backup & Dados" />} />
+            <Route path="/backup" element={<BackupDadosPage />} />
           </Route>
         </Route>
       </Routes>

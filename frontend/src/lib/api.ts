@@ -274,3 +274,24 @@ export function targetsClient(basePath: string): TargetsClient {
 
 export const goalsApi = targetsClient('/api/goals');
 export const projectsApi = targetsClient('/api/special-projects');
+
+export interface DollarQuote {
+  month: string;
+  rate: number;
+  salaryUsdCents: number | null;
+}
+
+export function listDollarQuotes(): Promise<DollarQuote[]> {
+  return request('/api/dollar-quotes');
+}
+
+export function upsertDollarQuote(
+  month: string,
+  input: { rate: number; salaryUsdCents?: number | null },
+): Promise<DollarQuote> {
+  return request(`/api/dollar-quotes/${month}`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
+export function deleteDollarQuote(month: string): Promise<{ ok: true }> {
+  return request(`/api/dollar-quotes/${month}`, { method: 'DELETE' });
+}

@@ -182,3 +182,47 @@ export function applyFixedExpenses(month: string): Promise<{ created: number }> 
     body: JSON.stringify({ month }),
   });
 }
+
+export interface EmergencyFundEntry {
+  id: number;
+  date: string;
+  amountCents: number;
+  notes: string | null;
+}
+
+export function listEmergencyFund(): Promise<EmergencyFundEntry[]> {
+  return request('/api/emergency-fund');
+}
+
+export function createEmergencyFundEntry(input: {
+  kind: 'deposit' | 'withdrawal';
+  date: string;
+  amountCents: number;
+  notes?: string | null;
+}): Promise<{ id: number }> {
+  return request('/api/emergency-fund', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function deleteEmergencyFundEntry(id: number): Promise<{ ok: true }> {
+  return request(`/api/emergency-fund/${id}`, { method: 'DELETE' });
+}
+
+export interface MonthlyTarget {
+  month: string;
+  pctOrFixed: string;
+  pctValue: number | null;
+  fixedValueCents: number | null;
+  targetCents: number;
+  rolloverCents: number;
+}
+
+export function getMonthlyTarget(month: string): Promise<MonthlyTarget> {
+  return request(`/api/savings-target/${month}`);
+}
+
+export function updateMonthlyTarget(
+  month: string,
+  cfg: { pctOrFixed: 'pct' | 'fixed'; pctValue?: number | null; fixedValueCents?: number | null },
+): Promise<MonthlyTarget> {
+  return request(`/api/savings-target/${month}`, { method: 'PUT', body: JSON.stringify(cfg) });
+}

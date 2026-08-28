@@ -123,14 +123,14 @@ export function FixedExpensesSection({ onApplied }: { onApplied?: () => void }) 
             onChange={(e) => setAmount(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="fixed-category" style={fieldStyle}>Categoria</label>
+          <label htmlFor="fixed-category" style={fieldStyle}>Categoria do gasto fixo</label>
           <select id="fixed-category" className="field-input" value={category}
             onChange={(e) => setCategory(e.target.value)}>
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
-          <label htmlFor="fixed-type" style={fieldStyle}>Tipo</label>
+          <label htmlFor="fixed-type" style={fieldStyle}>Tipo do gasto fixo</label>
           <select id="fixed-type" className="field-input" value={type}
             onChange={(e) => setType(e.target.value as 'essencial' | 'nao-essencial')}>
             <option value="essencial">Essencial</option>
@@ -138,7 +138,7 @@ export function FixedExpensesSection({ onApplied }: { onApplied?: () => void }) 
           </select>
         </div>
         <div>
-          <label htmlFor="fixed-payment" style={fieldStyle}>Forma de pagamento</label>
+          <label htmlFor="fixed-payment" style={fieldStyle}>Forma de pagamento do gasto fixo</label>
           <select id="fixed-payment" className="field-input" value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}>
             {PAYMENT_METHODS.map((p) => <option key={p} value={p}>{p}</option>)}

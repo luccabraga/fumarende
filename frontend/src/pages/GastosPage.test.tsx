@@ -1,7 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { GastosPage } from './GastosPage.js';
 import * as api from '../lib/api.js';
+
+// GastosPage renders FixedExpensesSection, which fetches its own templates
+// on mount. Stub that call so these tests only exercise the expense list.
+beforeEach(() => {
+  vi.spyOn(api, 'listFixedExpenses').mockResolvedValue([]);
+});
 
 function expense(over: Partial<api.Expense>): api.Expense {
   return {

@@ -50,3 +50,18 @@
       one expense dated the 1st; clicking again creates none.
 - [ ] An invalid expense (blank description, non-numeric amount) shows an
       inline error and saves nothing.
+
+## Reserva
+
+- [ ] Reserva page loads from the nav (no longer "em breve").
+- [ ] With no essential expenses, the status card shows the "registre
+      seus gastos essenciais" prompt.
+- [ ] A deposit raises "Já guardado" and appears in the history with a
+      `+`; a withdrawal lowers it and shows a `−`.
+- [ ] A withdrawal larger than the current balance shows the inline
+      warning but still records.
+- [ ] Setting the Meta Mensal to a % resolves against this month's
+      Receitas income; setting a fixed value uses that value as-is.
+- [ ] A month's target does not change after the fact when more income
+      is added later (frozen on first view).
+- [ ] Deleting a history entry updates the balance without a refresh.

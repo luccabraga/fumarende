@@ -1,12 +1,12 @@
 # fumarende — QA checklist
 
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
-> the built server (throwaway DB, port 4199) and runs a 95-assertion
+> the built server (throwaway DB, port 4199) and runs a 101-assertion
 > end-to-end pass over every module's API. Last run 2026-08-29:
-> **95/95 pass.** Unit + integration suites: **server 177, frontend 99,
-> all green.** Items below are marked `[x]` when the e2e run or a unit
-> test verifies them; `[ ]` items are browser-visual checks only a human
-> can confirm.
+> **101/101 pass.** Unit + integration suites: **server 188, frontend
+> 104, all green.** Items below are marked `[x]` when the e2e run or a
+> unit test verifies them; `[ ]` items are browser-visual checks only a
+> human can confirm.
 
 ## Foundation
 

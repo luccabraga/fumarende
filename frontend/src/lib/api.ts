@@ -226,3 +226,51 @@ export function updateMonthlyTarget(
 ): Promise<MonthlyTarget> {
   return request(`/api/savings-target/${month}`, { method: 'PUT', body: JSON.stringify(cfg) });
 }
+
+export interface Target {
+  id: number;
+  name: string;
+  targetCents: number;
+  currentCents: number;
+  targetDate: string | null;
+  notes: string | null;
+  status: string;
+}
+
+export interface TargetsClient {
+  list(): Promise<Target[]>;
+  create(input: {
+    name: string;
+    targetCents: number;
+    currentCents?: number;
+    targetDate?: string | null;
+    notes?: string | null;
+  }): Promise<{ id: number }>;
+  update(
+    id: number,
+    patch: {
+      name?: string;
+      targetCents?: number;
+      currentCents?: number;
+      targetDate?: string | null;
+      notes?: string | null;
+    },
+  ): Promise<{ ok: true }>;
+  addTo(id: number, deltaCents: number): Promise<{ ok: true }>;
+  remove(id: number): Promise<{ ok: true }>;
+}
+
+export function targetsClient(basePath: string): TargetsClient {
+  return {
+    list: () => request(basePath),
+    create: (input) => request(basePath, { method: 'POST', body: JSON.stringify(input) }),
+    update: (id, patch) =>
+      request(`${basePath}/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+    addTo: (id, deltaCents) =>
+      request(`${basePath}/${id}/add`, { method: 'POST', body: JSON.stringify({ deltaCents }) }),
+    remove: (id) => request(`${basePath}/${id}`, { method: 'DELETE' }),
+  };
+}
+
+export const goalsApi = targetsClient('/api/goals');
+export const projectsApi = targetsClient('/api/special-projects');

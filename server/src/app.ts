@@ -13,6 +13,7 @@ import { registerSavingsRoutes } from './routes/savings.js';
 import { registerTargetRoutes } from './routes/targets.js';
 import { registerDollarQuoteRoutes } from './routes/dollar-quotes.js';
 import { registerDataRoutes } from './routes/data.js';
+import { registerDashboardRoutes } from './routes/dashboard.js';
 import { runMigrations } from './db/migrate.js';
 
 declare module 'fastify' {
@@ -67,6 +68,7 @@ export async function buildApp(
   registerTargetRoutes(app, db, { table: 'special_projects', basePath: '/api/special-projects' });
   registerDollarQuoteRoutes(app, db);
   registerDataRoutes(app, db, dataPaths);
+  registerDashboardRoutes(app, db, dataPaths);
 
   if (frontendDistDir && fs.existsSync(path.join(frontendDistDir, 'index.html'))) {
     await app.register(fastifyStatic, { root: frontendDistDir });

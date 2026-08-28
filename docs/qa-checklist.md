@@ -33,3 +33,20 @@
       error and saves nothing.
 - [ ] Receitas: an entry with a "Valor (US$)" shows the USD amount in
       parentheses next to the BRL amount.
+
+## Gastos + Parcelas
+
+- [ ] Gastos page loads from the nav (no longer "em breve").
+- [ ] A one-off expense appears in the list immediately; the
+      Total / Essencial / Não-essencial card updates without a refresh.
+- [ ] An expense with N parcelas creates N rows dated one month apart,
+      each labelled (i/N), summing exactly to the purchase amount.
+- [ ] Deleting a non-installment expense removes just that row.
+- [ ] Deleting an installment expense (from Gastos or Parcelas) removes
+      the whole group.
+- [ ] Parcelas page shows one row per installment purchase with the
+      paid count and the remaining BRL.
+- [ ] Adding a fixed expense and clicking "Aplicar ao mês atual" creates
+      one expense dated the 1st; clicking again creates none.
+- [ ] An invalid expense (blank description, non-numeric amount) shows an
+      inline error and saves nothing.

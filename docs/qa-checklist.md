@@ -1,10 +1,10 @@
 # fumarende — QA checklist
 
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
-> the built server (throwaway DB, port 4199) and runs a 103-assertion
+> the built server (throwaway DB, port 4199) and runs a 109-assertion
 > end-to-end pass over every module's API. Last run 2026-08-29:
-> **103/103 pass.** Unit + integration suites: **server 191, frontend
-> 111, all green.** Items below are marked `[x]` when the e2e run or a
+> **109/109 pass.** Unit + integration suites: **server 213, frontend
+> 117, all green.** Items below are marked `[x]` when the e2e run or a
 > unit test verifies them; `[ ]` items are browser-visual checks only a
 > human can confirm.
 
@@ -217,3 +217,43 @@
 - [ ] Changing the Mês dropdown updates the Dashboard, Reserva "Meta
       Mensal", and Análise views; the list pages are unaffected; the
       choice survives a reload (browser).
+
+## IA — fundação + análise (Phase 2.1)
+
+- [x] Migration `003_ai` applies automatically on server restart — the
+      live DB's `schema_migrations` now has `001`, `002`, `003_ai` and
+      the `claude_api_calls` + `ai_analyses` tables exist (verified this
+      run).
+- [x] With no `ANTHROPIC_API_KEY`: `GET /api/ai/status` → 200
+      `configured:false`, `capUsdCents:400`; `POST /api/ai/analyses`
+      → 503; a bad `kind` → 400; `GET /api/ai/analyses` → `[]`;
+      `?limit=0` → 400; all → 401 without a session (e2e).
+- [x] `loadDotEnv` — `KEY=VALUE`, `#` comments, quotes, no-override,
+      missing-file no-op (3 unit tests). `loadConfig` maps the four AI
+      env vars + defaults; `apiKey` is `null` when unset (2 unit tests).
+- [x] `callClaude` — right URL/headers/body, parses text + usage, maps
+      non-2xx → `ClaudeUpstreamError(status)`, network throw →
+      `(null)`, `apiKey:null` → `ClaudeNotConfiguredError` with no fetch
+      (4 unit tests). `estimateCostUsdCents` — `$3/$15` per Mtok,
+      half-up, unknown model throws (2 unit tests).
+- [x] `buildSnapshot` — 3-month income window, category sort, reserve
+      balance, serialisable + < 8 KB on the seed fixture; empty-DB safe
+      (2 unit tests).
+- [x] `runAnalysis` — success writes one `ok` call row + one analysis
+      row and returns the joined shape; upstream failure writes one
+      `error` row and re-throws; month-to-date ≥ cap throws
+      `BudgetExceededError` with no call. `listAnalyses` newest-first +
+      cost join; `aiStatus` configured flag + dollar-quote rate (5 unit
+      tests).
+- [x] `Markdown` renderer — headings / bold / italic / ordered +
+      unordered lists / inline code; literal `<script>` stays text, no
+      HTML injection (2 unit tests).
+- [x] `ConsultorIA` — buttons disabled + config note when
+      `configured:false`; a preset click calls `runAiAnalysis(kind)` and
+      renders the Markdown; a 429 shows the limit warning; history lists
+      collapsed and expands (4 unit tests). `AnalisePage` renders the
+      "Consultor IA" card (unit).
+- [ ] In the browser: the Análise page shows a disabled "Consultor IA"
+      card while no key is set. After putting `ANTHROPIC_API_KEY` in
+      `server/.env` and restarting, a preset returns a Markdown answer,
+      the "IA este mês" line moves, and the run appears in Histórico.

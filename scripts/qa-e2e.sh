@@ -228,6 +228,16 @@ aeq "dashboard honours ?month=2026-06" "2026-06" "$(body GET '/api/dashboard?mon
 as  "dashboard rejects a malformed ?month= -> 400" 400 "$(code GET '/api/dashboard?month=nope')"
 
 echo
+echo "== IA (Phase 2, sem chave configurada) =="
+S="$(body GET /api/ai/status)"
+aeq "ai/status configured is false" "false" "$(echo "$S" | jq -r '.configured')"
+aeq "ai/status cap is 400" "400" "$(echo "$S" | jq -r '.capUsdCents')"
+as  "POST ai/analyses without a key -> 503" 503 "$(code POST /api/ai/analyses '{"kind":"diagnostico"}')"
+as  "POST ai/analyses bad kind -> 400" 400 "$(code POST /api/ai/analyses '{"kind":"nope"}')"
+aeq "ai/analyses list is empty" "[]" "$(body GET /api/ai/analyses | jq -c '.')"
+as  "ai/analyses?limit=0 -> 400" 400 "$(code GET '/api/ai/analyses?limit=0')"
+
+echo
 echo "== Análise (input endpoints the page reads) =="
 for ep in /api/income /api/expenses /api/emergency-fund /api/savings-target/2026-08 /api/goals /api/special-projects; do
   as "GET $ep -> 200 (cookie)" 200 "$(code GET "$ep")"

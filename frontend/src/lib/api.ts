@@ -21,7 +21,9 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ error: response.statusText }));
-    throw new Error(body.error ?? 'Request failed');
+    const err = new Error(body.error ?? 'Request failed') as Error & { status?: number };
+    err.status = response.status;
+    throw err;
   }
 
   return response.json() as Promise<T>;
@@ -374,4 +376,29 @@ export interface DashboardSummary {
 
 export function getDashboard(month?: string): Promise<DashboardSummary> {
   return request(`/api/dashboard${month ? `?month=${month}` : ''}`);
+}
+
+export interface AiStatus {
+  configured: boolean;
+  model: string;
+  monthToDateUsdCents: number;
+  capUsdCents: number;
+  usdBrlRate: number;
+}
+export interface AiAnalysis {
+  id: number;
+  createdAt: string;
+  kind: 'diagnostico' | 'poupanca' | 'cambio';
+  responseMd: string;
+  costUsdCents: number;
+  model: string;
+}
+export function getAiStatus(): Promise<AiStatus> {
+  return request('/api/ai/status');
+}
+export function listAiAnalyses(limit?: number): Promise<AiAnalysis[]> {
+  return request(`/api/ai/analyses${limit ? `?limit=${limit}` : ''}`);
+}
+export function runAiAnalysis(kind: AiAnalysis['kind']): Promise<AiAnalysis> {
+  return request('/api/ai/analyses', { method: 'POST', body: JSON.stringify({ kind }) });
 }

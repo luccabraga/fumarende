@@ -3,6 +3,7 @@ import * as api from '../lib/api.js';
 import { formatCentsBRL } from '../lib/money.js';
 import { spendingBreakdown, projectSavings, scenarioCatalog, applyCuts } from '../lib/analysis.js';
 import { BarBreakdown } from '../components/BarBreakdown.js';
+import { ConsultorIA } from '../components/ConsultorIA.js';
 import { useMonth } from '../context/MonthContext.js';
 
 const cardGap = { marginBottom: 24 } as const;
@@ -181,6 +182,8 @@ export function AnalisePage() {
           </>
         )}
       </div>
+
+      <ConsultorIA />
     </div>
   );
 }

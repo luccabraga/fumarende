@@ -56,6 +56,14 @@ beforeEach(() => {
   vi.spyOn(api, 'listMonthlyClose').mockResolvedValue([]);
   vi.spyOn(api.goalsApi, 'list').mockResolvedValue([]);
   vi.spyOn(api.projectsApi, 'list').mockResolvedValue([]);
+  vi.spyOn(api, 'getAiStatus').mockResolvedValue({
+    configured: false,
+    model: 'claude-sonnet-5',
+    monthToDateUsdCents: 0,
+    capUsdCents: 400,
+    usdBrlRate: 5,
+  });
+  vi.spyOn(api, 'listAiAnalyses').mockResolvedValue([]);
 });
 
 describe('AnalisePage', () => {
@@ -65,6 +73,7 @@ describe('AnalisePage', () => {
     expect(screen.getByRole('heading', { name: 'Gastos por categoria' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Projeção 12 meses' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Cenários' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Consultor IA' })).toBeInTheDocument();
     expect(screen.getByText(/R\$ 5\.000,00/)).toBeInTheDocument();
   });
 

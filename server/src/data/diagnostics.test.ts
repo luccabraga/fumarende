@@ -25,7 +25,7 @@ describe('diagnostics', () => {
 
     const d = diagnostics(db);
     expect(d.rowCounts.income).toBe(1); // the soft-deleted row is not counted
-    expect(d.migrations).toEqual(['001_initial_schema', '002_dollar_quotes']);
+    expect(d.migrations).toEqual(['001_initial_schema', '002_dollar_quotes', '003_ai']);
     expect(d.dbSizeBytes).toBe(0);
     expect(d.lastBackup).toBeNull();
     expect(d.backupCount).toBe(0);

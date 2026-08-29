@@ -15,6 +15,8 @@ export const DATA_TABLES = [
   'category_rules',
   'ptax_rate_cache',
   'dollar_quotes',
+  'ai_analyses',
+  'claude_api_calls',
   'monthly_close',
 ] as const;
 

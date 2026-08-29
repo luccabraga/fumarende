@@ -30,6 +30,8 @@ describe('runMigrations', () => {
       'monthly_close',
       'schema_migrations',
       'dollar_quotes',
+      'claude_api_calls',
+      'ai_analyses',
     ]) {
       expect(tables).toContain(expected);
     }
@@ -37,6 +39,10 @@ describe('runMigrations', () => {
     const applied = db
       .prepare('SELECT id FROM schema_migrations ORDER BY id')
       .all() as { id: string }[];
-    expect(applied.map((r) => r.id)).toEqual(['001_initial_schema', '002_dollar_quotes']);
+    expect(applied.map((r) => r.id)).toEqual([
+      '001_initial_schema',
+      '002_dollar_quotes',
+      '003_ai',
+    ]);
   });
 });

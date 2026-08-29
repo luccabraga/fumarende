@@ -15,6 +15,8 @@ const TABLES_WITHOUT_DELETED_AT = new Set([
   'savings_monthly_targets',
   'monthly_close',
   'ptax_rate_cache',
+  'ai_analyses',
+  'claude_api_calls',
 ]);
 
 export function diagnostics(

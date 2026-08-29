@@ -25,7 +25,7 @@ Decisions from that session:
   build must work end-to-end without one — every AI route degrades to a
   clean "not configured" response, and the whole test + e2e suite runs
   with no key and makes no real network calls. The key is added later
-  via `.env` / the launchd plist.
+  via `server/.env`.
 - **Web search:** deferred. v1 analysis reasons only from the user's own
   data.
 - **Analysis form:** 2–3 **preset** analyses (fixed prompts), no
@@ -52,7 +52,7 @@ Decisions from that session:
   a month-to-date spend line, the latest response rendered as Markdown,
   and a collapsible history — all gracefully disabled when the server
   reports `configured: false`.
-- Config + launchd plumbing for `ANTHROPIC_API_KEY`, with no key
+- Config + `server/.env` delivery for `ANTHROPIC_API_KEY`, with no key
   committed and no key required to build, test, or run.
 
 ## Non-goals
@@ -99,13 +99,12 @@ Nothing else imports it; no test imports it. `server/.env` is already
 covered by the root `.gitignore` (`.env` / `.env.*`). A
 `server/.env.example` documents the four vars with placeholder values.
 
-**launchd.** `scripts/com.lucca.fumarende.plist.template` gains an
-`EnvironmentVariables` dict with `ANTHROPIC_API_KEY` (and optionally the
-three tuning vars). `scripts/install-launchd.sh` substitutes the key
-from the caller's environment or a prompt, and documents that leaving it
-blank is fine — the server simply runs without AI. The committed
-template carries an empty / `__ANTHROPIC_API_KEY__` placeholder, never a
-real key.
+**launchd.** No plist or `install-launchd.sh` change. launchd sets the
+service's working directory to `<repo>/server` (already in the
+template), and `index.ts` calls `loadDotEnv(cwd/.env)` before
+`loadConfig()`, so `server/.env` is picked up automatically. The user
+creates `server/.env` from `.env.example`, pastes the key, and restarts
+the service. No key ever touches a committed file.
 
 ### Migration `003_ai`
 
@@ -132,9 +131,15 @@ CREATE TABLE ai_analyses (
   kind                TEXT    NOT NULL,      -- 'diagnostico' | 'poupanca' | 'cambio'
   snapshot_json       TEXT    NOT NULL,      -- the exact JSON sent to Claude
   response_md         TEXT    NOT NULL,
-  claude_api_call_id  INTEGER NOT NULL REFERENCES claude_api_calls(id)
+  claude_api_call_id  INTEGER NOT NULL       -- references claude_api_calls(id); no enforced FK, matching the rest of the schema
 );
 ```
+
+The rest of the schema uses no `REFERENCES` constraints (e.g.
+`expenses.installment_group_id` is a bare column) — `foreign_keys` is
+`ON` in `openDb`, and a hard FK would force conflicting row orders
+between `wipeData` (child first) and data import (parent first). The
+join in `listAnalyses` is a plain `LEFT JOIN` on this column.
 
 `server/src/data/tables.ts` — add `'claude_api_calls'` and
 `'ai_analyses'` to `DATA_TABLES` (so export / import / wipe / seed and
@@ -494,19 +499,17 @@ Consultor card.
 
 **Modified — repo:**
 
-- `scripts/com.lucca.fumarende.plist.template` — `EnvironmentVariables`
-- `scripts/install-launchd.sh` — key substitution + docs
 - `scripts/qa-e2e.sh` — AI section (no-key assertions)
 - `docs/qa-checklist.md` — AI foundation section
 - `README.md` — Phase 2 status line
-- `.gitignore` — confirm `server/.env` is covered (it is, via `.env` /
-  `.env.*`); no change expected
+- No `.gitignore` change — `server/.env` is already covered by `.env` /
+  `.env.*`. No plist / `install-launchd.sh` change — the service's cwd
+  is `<repo>/server`, so `server/.env` is loaded automatically.
 
 ## Security / cost notes
 
-- The API key is never committed: `.env` is gitignored, the plist
-  template carries a placeholder, `install-launchd.sh` injects at
-  install time.
+- The API key is never committed: `server/.env` is gitignored and is the
+  only place it lives; no key is written to any tracked file.
 - `loadConfig` and every test are pure functions of an explicit `env` /
   args object — the real key and the live DB are never touched by the
   suite; the whole build runs offline.

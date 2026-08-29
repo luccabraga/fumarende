@@ -1,7 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AnalisePage } from './AnalisePage.js';
+import { MonthProvider } from '../context/MonthContext.js';
 import * as api from '../lib/api.js';
+
+function renderPage() {
+  return render(
+    <MonthProvider>
+      <AnalisePage />
+    </MonthProvider>,
+  );
+}
 
 const target: api.MonthlyTarget = {
   month: '2026-08',
@@ -44,13 +53,14 @@ beforeEach(() => {
     { id: 1, date: '2026-07-01', amountCents: 300_000, notes: null },
   ]);
   vi.spyOn(api, 'getMonthlyTarget').mockResolvedValue(target);
+  vi.spyOn(api, 'listMonthlyClose').mockResolvedValue([]);
   vi.spyOn(api.goalsApi, 'list').mockResolvedValue([]);
   vi.spyOn(api.projectsApi, 'list').mockResolvedValue([]);
 });
 
 describe('AnalisePage', () => {
   it('renders the four sections and the income total', async () => {
-    render(<AnalisePage />);
+    renderPage();
     expect(await screen.findByRole('heading', { name: 'Resumo' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Gastos por categoria' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Projeção 12 meses' })).toBeInTheDocument();
@@ -59,7 +69,7 @@ describe('AnalisePage', () => {
   });
 
   it('updates the cut total when a scenario slider moves', async () => {
-    render(<AnalisePage />);
+    renderPage();
     const slider = await screen.findByLabelText('Corte de Delivery');
     fireEvent.change(slider, { target: { value: '100' } });
     await waitFor(() =>
@@ -69,7 +79,7 @@ describe('AnalisePage', () => {
 
   it('shows the meta-mensal note when the target is zero', async () => {
     vi.spyOn(api, 'getMonthlyTarget').mockResolvedValue({ ...target, targetCents: 0 });
-    render(<AnalisePage />);
+    renderPage();
     expect(await screen.findByText(/Configure sua meta mensal em Reserva/)).toBeInTheDocument();
   });
 });

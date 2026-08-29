@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL } from '../lib/money.js';
 import { BarBreakdown } from '../components/BarBreakdown.js';
+import { useMonth } from '../context/MonthContext.js';
 
 const cardGap = { marginBottom: 24 } as const;
 const h2Style = { fontFamily: 'var(--mono)', fontSize: 15, marginBottom: 10 } as const;
@@ -39,12 +40,13 @@ function Delta({
 }
 
 export function DashboardPage() {
+  const { month } = useMonth();
   const [summary, setSummary] = useState<api.DashboardSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
     try {
-      setSummary(await api.getDashboard());
+      setSummary(await api.getDashboard(month));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar o dashboard');
     }
@@ -52,7 +54,8 @@ export function DashboardPage() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month]);
 
   async function toggleClose() {
     if (!summary) return;

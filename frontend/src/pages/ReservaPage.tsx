@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL, parseCentsFromInput } from '../lib/money.js';
 import { essentialAverage, reserveTiers } from '../lib/reserva.js';
+import { useMonth } from '../context/MonthContext.js';
 
 const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 const today = () => new Date().toISOString().slice(0, 10);
-const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 const TIER_MESSAGE: Record<ReturnType<typeof reserveTiers>['tier'], string> = {
   'no-data': 'Registre seus gastos essenciais em Gastos para calcular a reserva ideal.',
@@ -15,6 +15,7 @@ const TIER_MESSAGE: Record<ReturnType<typeof reserveTiers>['tier'], string> = {
 };
 
 export function ReservaPage() {
+  const { month } = useMonth();
   const [entries, setEntries] = useState<api.EmergencyFundEntry[]>([]);
   const [expenses, setExpenses] = useState<api.Expense[]>([]);
   const [target, setTarget] = useState<api.MonthlyTarget | null>(null);
@@ -37,7 +38,7 @@ export function ReservaPage() {
     const [fund, exp, tgt] = await Promise.all([
       api.listEmergencyFund(),
       api.listExpenses(),
-      api.getMonthlyTarget(currentMonth()),
+      api.getMonthlyTarget(month),
     ]);
     setEntries(fund);
     setExpenses(exp);
@@ -49,13 +50,13 @@ export function ReservaPage() {
 
   useEffect(() => {
     refresh();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month]);
 
   const balance = useMemo(() => entries.reduce((s, e) => s + e.amountCents, 0), [entries]);
   const { averageCents } = useMemo(() => essentialAverage(expenses), [expenses]);
   const tiers = useMemo(() => reserveTiers(balance, averageCents), [balance, averageCents]);
 
-  const month = currentMonth();
   const addedThisMonth = entries
     .filter((e) => e.date.startsWith(month))
     .reduce((s, e) => s + e.amountCents, 0);

@@ -1,7 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ReservaPage } from './ReservaPage.js';
+import { MonthProvider } from '../context/MonthContext.js';
 import * as api from '../lib/api.js';
+
+function renderPage() {
+  return render(
+    <MonthProvider>
+      <ReservaPage />
+    </MonthProvider>,
+  );
+}
 
 const target: api.MonthlyTarget = {
   month: '2026-08',
@@ -13,8 +22,10 @@ const target: api.MonthlyTarget = {
 };
 
 beforeEach(() => {
+  localStorage.clear();
   vi.spyOn(api, 'listExpenses').mockResolvedValue([]);
   vi.spyOn(api, 'getMonthlyTarget').mockResolvedValue(target);
+  vi.spyOn(api, 'listMonthlyClose').mockResolvedValue([]);
 });
 
 describe('ReservaPage', () => {
@@ -24,7 +35,7 @@ describe('ReservaPage', () => {
       { id: 2, date: '2026-06-10', amountCents: -200_000, notes: 'Conserto' },
     ]);
 
-    render(<ReservaPage />);
+    renderPage();
 
     expect(await screen.findByText('Já guardado: R$ 5.000,00')).toBeInTheDocument();
   });
@@ -36,7 +47,7 @@ describe('ReservaPage', () => {
       .mockResolvedValueOnce([{ id: 1, date: '2026-08-10', amountCents: 50_000, notes: null }]);
     const createSpy = vi.spyOn(api, 'createEmergencyFundEntry').mockResolvedValue({ id: 1 });
 
-    render(<ReservaPage />);
+    renderPage();
     await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(1));
 
     fireEvent.change(screen.getByLabelText('Data do depósito'), { target: { value: '2026-08-10' } });
@@ -59,7 +70,7 @@ describe('ReservaPage', () => {
     ]);
     const createSpy = vi.spyOn(api, 'createEmergencyFundEntry').mockResolvedValue({ id: 2 });
 
-    render(<ReservaPage />);
+    renderPage();
     await waitFor(() => expect(api.listEmergencyFund).toHaveBeenCalled());
 
     fireEvent.change(screen.getByLabelText('Data da retirada'), { target: { value: '2026-08-10' } });
@@ -79,7 +90,7 @@ describe('ReservaPage', () => {
     vi.spyOn(api, 'listEmergencyFund').mockResolvedValue([]);
     const updateSpy = vi.spyOn(api, 'updateMonthlyTarget').mockResolvedValue(target);
 
-    render(<ReservaPage />);
+    renderPage();
     await waitFor(() => expect(api.getMonthlyTarget).toHaveBeenCalled());
 
     fireEvent.change(screen.getByLabelText('Percentual da meta'), { target: { value: '25' } });
@@ -99,7 +110,7 @@ describe('ReservaPage', () => {
       .mockResolvedValueOnce([]);
     const delSpy = vi.spyOn(api, 'deleteEmergencyFundEntry').mockResolvedValue({ ok: true });
 
-    render(<ReservaPage />);
+    renderPage();
     expect(
       await screen.findByRole('button', { name: 'Excluir lançamento de 2026-06-01' }),
     ).toBeInTheDocument();

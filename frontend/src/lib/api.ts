@@ -372,6 +372,6 @@ export interface DashboardSummary {
   alerts: { level: 'info' | 'warning' | 'danger'; message: string }[];
 }
 
-export function getDashboard(): Promise<DashboardSummary> {
-  return request('/api/dashboard');
+export function getDashboard(month?: string): Promise<DashboardSummary> {
+  return request(`/api/dashboard${month ? `?month=${month}` : ''}`);
 }

@@ -1,7 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DashboardPage } from './DashboardPage.js';
+import { MonthProvider } from '../context/MonthContext.js';
 import * as api from '../lib/api.js';
+
+function renderPage() {
+  return render(
+    <MonthProvider>
+      <DashboardPage />
+    </MonthProvider>,
+  );
+}
 
 const summary: api.DashboardSummary = {
   month: '2026-08',
@@ -38,12 +47,14 @@ const summary: api.DashboardSummary = {
 };
 
 beforeEach(() => {
+  localStorage.clear();
   vi.spyOn(api, 'getDashboard').mockResolvedValue(summary);
+  vi.spyOn(api, 'listMonthlyClose').mockResolvedValue([]);
 });
 
 describe('DashboardPage', () => {
   it('renders the stat cards, an expenses delta, and the alert', async () => {
-    render(<DashboardPage />);
+    renderPage();
     expect(await screen.findByText('R$ 5.000,00')).toBeInTheDocument(); // income
     expect(screen.getByText('R$ 3.000,00')).toBeInTheDocument(); // expenses
     expect(screen.getByText(/↓ 25% vs 2026-07/)).toBeInTheDocument(); // expenses fell 25%
@@ -51,14 +62,14 @@ describe('DashboardPage', () => {
   });
 
   it('renders a category bar per byCategory entry and the top goal', async () => {
-    render(<DashboardPage />);
+    renderPage();
     expect(await screen.findByTestId('bar-Moradia')).toBeInTheDocument();
     expect(screen.getByTestId('bar-Lazer')).toBeInTheDocument();
     expect(screen.getByText('Viagem')).toBeInTheDocument();
   });
 
   it('shows the active-installments card only when activeGroups > 0', async () => {
-    render(<DashboardPage />);
+    renderPage();
     expect(await screen.findByText(/parcelamento\(s\) ativo\(s\)/)).toBeInTheDocument();
   });
 
@@ -67,7 +78,7 @@ describe('DashboardPage', () => {
       .spyOn(api, 'markMonthReviewed')
       .mockResolvedValue({ month: '2026-08', reviewed: true, reviewedAt: 'now' });
 
-    render(<DashboardPage />);
+    renderPage();
     fireEvent.click(await screen.findByLabelText('Revisado 2026-08'));
 
     await waitFor(() => expect(markSpy).toHaveBeenCalledWith('2026-08'));
@@ -76,8 +87,14 @@ describe('DashboardPage', () => {
 
   it('shows an error and no stat cards when the fetch fails', async () => {
     vi.spyOn(api, 'getDashboard').mockRejectedValue(new Error('boom'));
-    render(<DashboardPage />);
+    renderPage();
     expect(await screen.findByText('boom')).toBeInTheDocument();
     expect(screen.queryByText('R$ 5.000,00')).not.toBeInTheDocument();
+  });
+
+  it('requests the dashboard for the stored month', async () => {
+    localStorage.setItem('fumarende.month', '2026-06');
+    renderPage();
+    await waitFor(() => expect(api.getDashboard).toHaveBeenCalledWith('2026-06'));
   });
 });

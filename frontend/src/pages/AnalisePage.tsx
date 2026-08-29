@@ -3,11 +3,13 @@ import * as api from '../lib/api.js';
 import { formatCentsBRL } from '../lib/money.js';
 import { spendingBreakdown, projectSavings, scenarioCatalog, applyCuts } from '../lib/analysis.js';
 import { BarBreakdown } from '../components/BarBreakdown.js';
+import { useMonth } from '../context/MonthContext.js';
 
 const cardGap = { marginBottom: 24 } as const;
 const h2Style = { fontFamily: 'var(--mono)', fontSize: 15, marginBottom: 10 } as const;
 
 export function AnalisePage() {
+  const { month } = useMonth();
   const [income, setIncome] = useState<api.IncomeEntry[]>([]);
   const [expenses, setExpenses] = useState<api.Expense[]>([]);
   const [fund, setFund] = useState<api.EmergencyFundEntry[]>([]);
@@ -19,7 +21,6 @@ export function AnalisePage() {
   useEffect(() => {
     (async () => {
       try {
-        const month = new Date().toISOString().slice(0, 7);
         const [inc, exp, ef, tgt, goals, projects] = await Promise.all([
           api.listIncome(),
           api.listExpenses(),
@@ -37,7 +38,8 @@ export function AnalisePage() {
         setError(err instanceof Error ? err.message : 'Erro ao carregar a análise');
       }
     })();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month]);
 
   const breakdown = useMemo(() => spendingBreakdown(income, expenses), [income, expenses]);
   const reserveBalanceCents = useMemo(

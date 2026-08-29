@@ -35,4 +35,24 @@ describe('dashboard route', () => {
     expect(body.evolution).toHaveLength(6);
     await app.close();
   });
+
+  it('accepts a ?month= query and rejects a malformed one', async () => {
+    const { app, sessionCookie } = await authedApp();
+
+    const ok = await app.inject({
+      method: 'GET',
+      url: '/api/dashboard?month=2026-06',
+      cookies: { session: sessionCookie },
+    });
+    expect(ok.statusCode).toBe(200);
+    expect(ok.json().month).toBe('2026-06');
+
+    const bad = await app.inject({
+      method: 'GET',
+      url: '/api/dashboard?month=2026-6',
+      cookies: { session: sessionCookie },
+    });
+    expect(bad.statusCode).toBe(400);
+    await app.close();
+  });
 });

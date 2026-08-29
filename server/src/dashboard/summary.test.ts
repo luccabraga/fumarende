@@ -155,6 +155,25 @@ describe('dashboardSummary', () => {
     expect(s.alerts.some((a) => a.level === 'warning' && /spread/i.test(a.message))).toBe(true);
   });
 
+  it('honours an explicit month option', () => {
+    const db = freshDb();
+    income(db, '2026-06-01', 111_000);
+    income(db, '2026-08-01', 999_000);
+    expense(db, '2026-06-02', 22_000);
+
+    const s = dashboardSummary(db, { month: '2026-06', now: NOW });
+    expect(s.month).toBe('2026-06');
+    expect(s.previousMonth).toBe('2026-05');
+    expect(s.evolution[5].month).toBe('2026-06');
+    expect(s.income.currentCents).toBe(111_000);
+    expect(s.expenses.currentCents).toBe(22_000);
+  });
+
+  it('falls back to the now-derived month when month is malformed', () => {
+    const s = dashboardSummary(freshDb(), { month: '2026-6', now: NOW });
+    expect(s.month).toBe('2026-08');
+  });
+
   it('reads the monthly-close row for the current month', () => {
     const db = freshDb();
     db.prepare(

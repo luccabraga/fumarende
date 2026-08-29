@@ -71,10 +71,11 @@ function latestBackupMs(backupDir: string): number | null {
 
 export function dashboardSummary(
   db: Database.Database,
-  opts: { now?: Date; dataPaths?: { dbPath: string; backupDir: string } } = {},
+  opts: { now?: Date; month?: string; dataPaths?: { dbPath: string; backupDir: string } } = {},
 ): DashboardSummary {
   const now = opts.now ?? new Date();
-  const month = monthKey(now);
+  const month =
+    opts.month && /^\d{4}-\d{2}$/.test(opts.month) ? opts.month : monthKey(now);
   const previousMonth = shiftMonth(month, -1);
   const nextMonth = shiftMonth(month, 1);
   const todayISO = `${month}-${String(now.getDate()).padStart(2, '0')}`;
@@ -237,13 +238,15 @@ export function dashboardSummary(
       }).spreadPct ?? 0,
   );
 
+  const [anchorY, anchorM] = month.split('-').map(Number);
+  const monthAnchor = new Date(anchorY, anchorM - 1, 15);
   const essentialAvgCents = essentialAverage(
     db
       .prepare(
         'SELECT date, amount_cents AS amountCents, type FROM expenses WHERE deleted_at IS NULL',
       )
       .all() as { date: string; amountCents: number; type: string }[],
-    now,
+    monthAnchor,
   ).averageCents;
 
   const alerts: DashboardSummary['alerts'] = [];

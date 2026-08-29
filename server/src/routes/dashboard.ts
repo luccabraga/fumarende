@@ -8,7 +8,15 @@ export function registerDashboardRoutes(
   db: Database.Database,
   dataPaths?: { dbPath: string; backupDir: string },
 ): void {
-  app.get('/api/dashboard', { preHandler: requireAuth(db) }, async () =>
-    dashboardSummary(db, { dataPaths }),
+  app.get<{ Querystring: { month?: string } }>(
+    '/api/dashboard',
+    { preHandler: requireAuth(db) },
+    async (request, reply) => {
+      const { month } = request.query;
+      if (month !== undefined && !/^\d{4}-\d{2}$/.test(month)) {
+        return reply.code(400).send({ error: 'month must be in YYYY-MM format' });
+      }
+      return dashboardSummary(db, { month, dataPaths });
+    },
   );
 }

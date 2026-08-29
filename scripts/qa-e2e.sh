@@ -224,6 +224,8 @@ aeq "dashboard evolution has 6 months" "6" "$(echo "$D" | jq '.evolution | lengt
 aeq "dashboard alerts is an array" "array" "$(echo "$D" | jq -r '.alerts | type')"
 aeq "dashboard income is positive after the seed" "true" "$(echo "$D" | jq '.income.currentCents > 0')"
 aeq "dashboard shows an active installment after the seed" "true" "$(echo "$D" | jq '.installments.activeGroups >= 1')"
+aeq "dashboard honours ?month=2026-06" "2026-06" "$(body GET '/api/dashboard?month=2026-06' | jq -r '.month')"
+as  "dashboard rejects a malformed ?month= -> 400" 400 "$(code GET '/api/dashboard?month=nope')"
 
 echo
 echo "== Análise (input endpoints the page reads) =="

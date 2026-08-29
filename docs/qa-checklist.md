@@ -1,10 +1,10 @@
 # fumarende — QA checklist
 
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
-> the built server (throwaway DB, port 4199) and runs a 101-assertion
+> the built server (throwaway DB, port 4199) and runs a 103-assertion
 > end-to-end pass over every module's API. Last run 2026-08-29:
-> **101/101 pass.** Unit + integration suites: **server 188, frontend
-> 104, all green.** Items below are marked `[x]` when the e2e run or a
+> **103/103 pass.** Unit + integration suites: **server 191, frontend
+> 111, all green.** Items below are marked `[x]` when the e2e run or a
 > unit test verifies them; `[ ]` items are browser-visual checks only a
 > human can confirm.
 
@@ -199,3 +199,21 @@
       evolution lines, recent-expense rows, goal bars, and the
       "Fechamento do mês" toggle render in the browser (component-tested;
       manual pass optional).
+
+## Month selector (nav shell)
+
+- [x] `GET /api/dashboard?month=2026-06` returns a summary whose `month`
+      is `2026-06`; `?month=nope` → 400 (e2e).
+- [x] `dashboardSummary({ month })` computes for that month (prev month,
+      evolution end, sums) and falls back to the current month on a
+      malformed value (2 unit tests).
+- [x] `MonthContext` — defaults to the current month, honours a valid
+      stored value, `setMonth` persists to `localStorage`, `months` is
+      the sorted-desc union incl. the current + active month, and a
+      failed `listMonthlyClose` degrades to `[month]` (5 unit tests).
+- [x] `NavShell` renders the `Mês` select and persists a change (unit);
+      `App` mounts one `Mês` select on the shell (unit).
+- [x] `DashboardPage` requests the dashboard for the stored month (unit).
+- [ ] Changing the Mês dropdown updates the Dashboard, Reserva "Meta
+      Mensal", and Análise views; the list pages are unaffected; the
+      choice survives a reload (browser).

@@ -19,4 +19,29 @@ describe('loadConfig', () => {
     const config = loadConfig({ FUMARENDE_PORT: '5000' });
     expect(config.port).toBe(5000);
   });
+
+  it('populates config.ai from env with defaults', () => {
+    const c = loadConfig({});
+    expect(c.ai).toEqual({
+      apiKey: null,
+      model: 'claude-sonnet-5',
+      monthlyCapUsdCents: 400,
+      usdBrlFallbackRate: 5.4,
+    });
+  });
+
+  it('reads the AI env vars when set', () => {
+    const c = loadConfig({
+      ANTHROPIC_API_KEY: 'sk-test',
+      FUMARENDE_AI_MODEL: 'claude-opus-5',
+      FUMARENDE_AI_MONTHLY_CAP_USD_CENTS: '1000',
+      FUMARENDE_USD_BRL_FALLBACK: '5.9',
+    });
+    expect(c.ai).toEqual({
+      apiKey: 'sk-test',
+      model: 'claude-opus-5',
+      monthlyCapUsdCents: 1000,
+      usdBrlFallbackRate: 5.9,
+    });
+  });
 });

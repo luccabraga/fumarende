@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
+import { useMonth } from '../context/MonthContext.js';
 
 const NAV_ITEMS: { to: string; label: string }[] = [
   { to: '/', label: 'Dashboard' },
@@ -17,6 +18,7 @@ const NAV_ITEMS: { to: string; label: string }[] = [
 
 export function NavShell() {
   const { logout } = useAuth();
+  const { month, setMonth, months } = useMonth();
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -32,6 +34,24 @@ export function NavShell() {
         <div style={{ padding: '0 22px 22px', fontFamily: 'var(--mono)', fontSize: 19 }}>
           fumarende
         </div>
+        <label
+          style={{ display: 'block', padding: '0 22px 14px', fontSize: 11, color: 'var(--text3)' }}
+        >
+          Mês
+          <select
+            aria-label="Mês"
+            className="field-input"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            style={{ display: 'block', width: '100%', marginTop: 4 }}
+          >
+            {months.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </label>
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}

@@ -14,6 +14,15 @@ import { HistoricoDolarPage } from './pages/HistoricoDolarPage.js';
 import { BackupDadosPage } from './pages/BackupDadosPage.js';
 import { NavShell } from './components/NavShell.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
+import { MonthProvider } from './context/MonthContext.js';
+
+function AppShell() {
+  return (
+    <MonthProvider>
+      <NavShell />
+    </MonthProvider>
+  );
+}
 
 function Router() {
   const { passwordSet, authenticated } = useAuth();
@@ -27,7 +36,7 @@ function Router() {
           element={authenticated ? <Navigate to="/" replace /> : <LoginPage />}
         />
         <Route element={<ProtectedRoute />}>
-          <Route element={<NavShell />}>
+          <Route element={<AppShell />}>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/receitas" element={<ReceitasPage />} />
             <Route path="/cambio" element={<CambioPage />} />

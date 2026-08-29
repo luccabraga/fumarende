@@ -36,6 +36,7 @@ describe('App routing', () => {
       monthlyClose: { reviewed: false, reviewedAt: null },
       alerts: [],
     });
+    vi.spyOn(api, 'listMonthlyClose').mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -59,6 +60,7 @@ describe('App routing', () => {
     // The app shell (nav + dashboard) is what the user should land on.
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Receitas' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Mês')).toBeInTheDocument();
 
     // ...and the login form is gone.
     await waitFor(() => expect(screen.queryByLabelText('Senha')).not.toBeInTheDocument());

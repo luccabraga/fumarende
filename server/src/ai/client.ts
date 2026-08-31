@@ -23,11 +23,14 @@ export interface ClaudeResult {
   outputTokens: number;
 }
 
+/** A single Anthropic message content block (text, document, image, …). */
+export type ContentBlock = { type: string; [k: string]: unknown };
+
 const ENDPOINT = 'https://api.anthropic.com/v1/messages';
 
 export async function callClaude(
   cfg: AiConfig,
-  args: { system: string; user: string; maxTokens?: number },
+  args: { system: string; user: string | ContentBlock[]; maxTokens?: number },
   fetchImpl: typeof fetch = fetch,
 ): Promise<ClaudeResult> {
   if (cfg.apiKey === null) throw new ClaudeNotConfiguredError();

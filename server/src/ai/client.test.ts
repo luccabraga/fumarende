@@ -76,4 +76,15 @@ describe('callClaude', () => {
     expect(err).toBeInstanceOf(ClaudeUpstreamError);
     expect(err.httpStatus).toBeNull();
   });
+
+  it('passes a content-block array straight through as the message content', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(okResponse());
+    const blocks = [
+      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: 'QQ==' } },
+      { type: 'text', text: 'extraia' },
+    ];
+    await callClaude(CFG, { system: 'sys', user: blocks }, fetchImpl as unknown as typeof fetch);
+    const body = JSON.parse((fetchImpl.mock.calls[0] as [string, { body: string }])[1].body);
+    expect(body.messages).toEqual([{ role: 'user', content: blocks }]);
+  });
 });

@@ -31,6 +31,32 @@ Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;
 without a key every AI route returns a clean "not configured" response
 and categorization falls back to rules only.
 
+**Phase 2.5 — UX/UI polish** (its own brainstorm → spec → plan cycle,
+after the Phase 2 Claude slices). A dedicated pass on look, feel, and
+usability now that the feature set is stable:
+
+- **Design tokens + a real stylesheet** — replace the scattered inline
+  `style={{}}` objects and repeated magic numbers with CSS custom
+  properties and utility classes.
+- **Responsive / mobile** — the app is opened from a phone on the home
+  network, but layouts assume desktop (fixed 224px sidebar, wide
+  flex-wrap forms). Real breakpoints and a collapsible nav.
+- **Navigation grouping** — 11 flat sidebar items → grouped sections
+  (Entradas / Gastos / Reserva & Metas / Análise / Config).
+- **Forms** — field grouping, inline per-field validation, clearer
+  success/error feedback.
+- **Page hierarchy** — Dashboard and Análise are long card stacks;
+  introduce a grid and stronger visual hierarchy.
+- **Loading / empty states** — pages currently render `null` while
+  fetching.
+- **Consistency audit** — heading sizes, button labels, and card
+  spacing drift between modules.
+- **Accessibility** — contrast, focus states, keyboard nav; wire up the
+  light/dark toggle the palette already supports.
+
+Sits before Phase 3 (Open Finance); can be pulled forward if the UI
+starts getting in the way of daily use.
+
 Design specs and implementation plans live under `docs/superpowers/`.
 
 ## Repo layout

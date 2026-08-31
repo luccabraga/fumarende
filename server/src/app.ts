@@ -15,6 +15,7 @@ import { registerDollarQuoteRoutes } from './routes/dollar-quotes.js';
 import { registerDataRoutes } from './routes/data.js';
 import { registerDashboardRoutes } from './routes/dashboard.js';
 import { registerAiRoutes } from './routes/ai.js';
+import { registerCategoryRuleRoutes } from './routes/category-rules.js';
 import { NOT_CONFIGURED_AI, type AiConfig } from './config.js';
 import { runMigrations } from './db/migrate.js';
 
@@ -65,6 +66,7 @@ export async function buildApp(
   registerIncomeRoutes(app, db);
   registerExchangeRoutes(app, db);
   registerExpenseRoutes(app, db, aiConfig);
+  registerCategoryRuleRoutes(app, db);
   registerFixedExpenseRoutes(app, db);
   registerSavingsRoutes(app, db);
   registerTargetRoutes(app, db, { table: 'goals', basePath: '/api/goals' });

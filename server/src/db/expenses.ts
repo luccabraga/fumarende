@@ -67,9 +67,8 @@ function validate(input: NewExpense): void {
   if (input.type !== 'essencial' && input.type !== 'nao-essencial') {
     throw new Error("type must be 'essencial' or 'nao-essencial'");
   }
-  if (input.category.trim() === '') {
-    throw new Error('category is required');
-  }
+  // `category` may be '' — an uncategorized expense, to be filled in by
+  // the categorization pipeline (rules + Haiku fallback).
   if (input.paymentMethod.trim() === '') {
     throw new Error('paymentMethod is required');
   }

@@ -64,7 +64,7 @@ export async function buildApp(
   registerAuthRoutes(app, db);
   registerIncomeRoutes(app, db);
   registerExchangeRoutes(app, db);
-  registerExpenseRoutes(app, db);
+  registerExpenseRoutes(app, db, aiConfig);
   registerFixedExpenseRoutes(app, db);
   registerSavingsRoutes(app, db);
   registerTargetRoutes(app, db, { table: 'goals', basePath: '/api/goals' });

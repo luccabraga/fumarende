@@ -78,6 +78,15 @@ describe('expense data layer', () => {
     expect(() => createExpense(db, { ...sampleInput(), type: 'x' })).toThrow();
   });
 
+  it('accepts a blank category (uncategorized)', () => {
+    const db = freshDb();
+    const [id] = createExpense(db, { ...sampleInput(), category: '' });
+    const row = db.prepare('SELECT category FROM expenses WHERE id = ?').get(id) as {
+      category: string;
+    };
+    expect(row.category).toBe('');
+  });
+
   it('softDeleteExpense removes just one row', () => {
     const db = freshDb();
     const [id] = createExpense(db, sampleInput());

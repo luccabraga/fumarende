@@ -1,12 +1,12 @@
 # fumarende — QA checklist
 
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
-> the built server (throwaway DB, port 4199) and runs a 109-assertion
-> end-to-end pass over every module's API. Last run 2026-08-29:
-> **109/109 pass.** Unit + integration suites: **server 213, frontend
-> 117, all green.** Items below are marked `[x]` when the e2e run or a
-> unit test verifies them; `[ ]` items are browser-visual checks only a
-> human can confirm.
+> the built server (throwaway DB, port 4199, no API key) and runs a
+> 120-assertion end-to-end pass over every module's API. Last run
+> 2026-08-31: **120/120 pass.** Unit + integration suites: **server 241,
+> frontend 122, all green.** Items below are marked `[x]` when the e2e
+> run or a unit test verifies them; `[ ]` items are browser-visual
+> checks only a human can confirm.
 
 ## Foundation
 
@@ -257,3 +257,43 @@
       card while no key is set. After putting `ANTHROPIC_API_KEY` in
       `server/.env` and restarting, a preset returns a Markdown answer,
       the "IA este mês" line moves, and the run appears in Histórico.
+
+## Auto-categorização (Phase 2.2)
+
+- [x] `matchRule` — first substring hit wins, case-insensitive;
+      `addRule` trims/lowercases the keyword, rejects a blank keyword or
+      an off-list category, dedupes an identical rule; `deleteRule`
+      soft-deletes (4 unit tests). `CATEGORIES` is the agreed 11 (unit,
+      both sides).
+- [x] `claudeCategorize` — uses `cfg.categorizeModel`
+      (`claude-haiku-4-5`), parses strict JSON, strips a ```json fence,
+      degrades a bad/off-list/low-confidence reply to `{category:null,
+      confidence:'low',keyword:null}`, propagates an HTTP error (4 unit
+      tests). Haiku priced `$1/$5` per Mtok (unit).
+- [x] `categorize` — a rule hit returns instantly with no ledger row and
+      no fetch; no rule + no key → `none`; no rule + key + high-conf →
+      category applied, one `ok` `endpoint='categorize'` ledger row, a
+      new `category_rules` row learned; low-conf → uncategorized, nothing
+      learned; monthly cap reached → no fetch; upstream error → `error`
+      ledger row, `none`, no throw (6 unit tests).
+- [x] `POST /api/expenses` with `category:""` — filled from a matching
+      rule; left `""` when nothing matches and no key; one rule result
+      applied to every installment row (e2e + integration).
+- [x] `POST /api/expenses/categorize-pending` — sweeps `category=''`
+      rows deduped by description, returns `{updated, stillPending,
+      stoppedAtCap}`, stops at the cap (e2e + integration).
+- [x] `GET/POST/DELETE /api/category-rules` — CRUD round-trip; 401 without
+      a session; `POST` blank keyword or unknown category → 400 (e2e +
+      integration).
+- [x] `CategoryRulesSection` lists/adds/deletes rules and surfaces a 400;
+      GastosPage defaults the category select to "Automático", submits a
+      blank category, shows "— sem categoria" and a "Categorizar
+      pendentes (n)" button (5 unit tests).
+- [x] QA runs the isolated server from a scratch dir with
+      `ANTHROPIC_API_KEY=""` so it never makes a real Claude call
+      (verified — 2.1 no-key assertions still pass).
+- [ ] In the browser: add an expense with "Automático" and a real
+      merchant name → within ~2s it comes back categorized, a
+      `category_rules` row appears, and the Análise "IA este mês" figure
+      ticks up a fraction of a cent. The "Regras de categoria" section
+      adds/deletes rules.

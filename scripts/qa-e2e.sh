@@ -10,6 +10,7 @@ TMP="$(mktemp -d)"
 export FUMARENDE_DATA_DIR="$TMP/data"
 export FUMARENDE_PORT="$PORT"
 export FUMARENDE_FRONTEND_DIST="$TMP/nope"   # no static serving needed for API QA
+export ANTHROPIC_API_KEY=""                  # QA must never make a real Claude call
 mkdir -p "$FUMARENDE_DATA_DIR"
 JAR="$TMP/cookies.txt"
 
@@ -54,7 +55,9 @@ lsof -ti "tcp:$PORT" 2>/dev/null | xargs kill -9 2>/dev/null
 sleep 0.5
 
 echo "Starting isolated server on :$PORT (data: $FUMARENDE_DATA_DIR)"
-node dist/index.js >"$TMP/server.log" 2>&1 &
+# Run from $TMP so the server's loadDotEnv(cwd/.env) finds nothing — the
+# real server/.env (with a live API key) must not leak into QA.
+( cd "$TMP" && node "$SERVER_DIR/dist/index.js" >"$TMP/server.log" 2>&1 ) &
 SRV=$!
 cleanup() {
   kill "$SRV" 2>/dev/null
@@ -236,6 +239,22 @@ as  "POST ai/analyses without a key -> 503" 503 "$(code POST /api/ai/analyses '{
 as  "POST ai/analyses bad kind -> 400" 400 "$(code POST /api/ai/analyses '{"kind":"nope"}')"
 aeq "ai/analyses list is empty" "[]" "$(body GET /api/ai/analyses | jq -c '.')"
 as  "ai/analyses?limit=0 -> 400" 400 "$(code GET '/api/ai/analyses?limit=0')"
+
+echo
+echo "== Categorização (Phase 2.2, sem chave) =="
+RULEID="$(body POST /api/category-rules '{"keyword":"uber","category":"Transporte"}' | jq -r '.id')"
+aeq "create rule returns an id" "true" "$([ -n "$RULEID" ] && [ "$RULEID" != "null" ] && echo true || echo false)"
+as  "expense w/ blank category + matching rule -> 201" 201 "$(code POST /api/expenses '{"date":"2026-08-05","description":"UBER *TRIP","amountCents":3210,"category":"","type":"nao-essencial","paymentMethod":"Crédito"}')"
+aeq "…and it is auto-categorized" "Transporte" "$(body GET /api/expenses | jq -r '[.[] | select(.description=="UBER *TRIP")][0].category')"
+as  "expense w/ blank category, no rule/key -> 201" 201 "$(code POST /api/expenses '{"date":"2026-08-06","description":"LOJA DESCONHECIDA","amountCents":1000,"category":"","type":"nao-essencial","paymentMethod":"Crédito"}')"
+aeq "…stays uncategorized" "" "$(body GET /api/expenses | jq -r '[.[] | select(.description=="LOJA DESCONHECIDA")][0].category')"
+CP="$(body POST /api/expenses/categorize-pending)"
+aeq "categorize-pending returns stoppedAtCap=false" "false" "$(echo "$CP" | jq -r '.stoppedAtCap')"
+aeq "categorize-pending stillPending >= 1" "true" "$(echo "$CP" | jq -r '.stillPending >= 1')"
+aeq "rules list has the seeded rule" "Transporte" "$(body GET /api/category-rules | jq -r '[.[] | select(.keyword=="uber")][0].category')"
+as  "delete rule -> 200" 200 "$(code DELETE "/api/category-rules/$RULEID")"
+as  "rule POST blank keyword -> 400" 400 "$(code POST /api/category-rules '{"keyword":"  ","category":"Transporte"}')"
+as  "rule POST unknown category -> 400" 400 "$(code POST /api/category-rules '{"keyword":"x","category":"Bogus"}')"
 
 echo
 echo "== Análise (input endpoints the page reads) =="

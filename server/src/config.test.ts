@@ -31,6 +31,10 @@ describe('loadConfig', () => {
     });
   });
 
+  it('treats an empty ANTHROPIC_API_KEY as not configured', () => {
+    expect(loadConfig({ ANTHROPIC_API_KEY: '' }).ai.apiKey).toBeNull();
+  });
+
   it('reads the AI env vars when set', () => {
     const c = loadConfig({
       ANTHROPIC_API_KEY: 'sk-test',

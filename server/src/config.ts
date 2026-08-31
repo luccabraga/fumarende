@@ -46,7 +46,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       env.FUMARENDE_FRONTEND_DIST ??
       path.join(process.cwd(), '..', 'frontend', 'dist'),
     ai: {
-      apiKey: env.ANTHROPIC_API_KEY ?? null,
+      apiKey: env.ANTHROPIC_API_KEY || null, // empty string counts as "not configured"
       model: env.FUMARENDE_AI_MODEL ?? AI_MODEL_DEFAULT,
       categorizeModel: env.FUMARENDE_AI_CATEGORIZE_MODEL ?? AI_CATEGORIZE_MODEL_DEFAULT,
       monthlyCapUsdCents: Number(

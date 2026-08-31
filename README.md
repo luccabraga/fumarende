@@ -19,12 +19,17 @@ slices:
 1. **Foundation + on-demand analysis** ✅ — a raw-`fetch` Claude client,
    a `claude_api_calls` / `ai_analyses` ledger, a soft monthly spend
    cap, and three preset read-only analyses in a "Consultor IA" card on
-   the Análise page. Works with no key configured (every AI route
-   returns a clean "not configured" response); set `ANTHROPIC_API_KEY`
-   in `server/.env` to enable.
-2. Auto-categorization (`category_rules` + Claude fallback) — next.
-3. PDF statement import.
+   the Análise page.
+2. **Auto-categorization** ✅ — a free keyword-rule pass then a Haiku
+   fallback for unknown merchants (which learns a new rule), on expense
+   create and via a "Categorizar pendentes" sweep; a "Regras de
+   categoria" management section on the Gastos page.
+3. PDF statement import — next.
 4. Web-search-backed macro context for the câmbio analysis.
+
+Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;
+without a key every AI route returns a clean "not configured" response
+and categorization falls back to rules only.
 
 Design specs and implementation plans live under `docs/superpowers/`.
 

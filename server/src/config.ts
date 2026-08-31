@@ -4,6 +4,7 @@ import path from 'node:path';
 export interface AiConfig {
   apiKey: string | null;
   model: string;
+  categorizeModel: string;
   monthlyCapUsdCents: number;
   usdBrlFallbackRate: number;
 }
@@ -18,6 +19,7 @@ export interface Config {
 }
 
 const AI_MODEL_DEFAULT = 'claude-sonnet-5';
+const AI_CATEGORIZE_MODEL_DEFAULT = 'claude-haiku-4-5';
 const AI_MONTHLY_CAP_USD_CENTS_DEFAULT = 400;
 const USD_BRL_FALLBACK_DEFAULT = 5.4;
 
@@ -25,6 +27,7 @@ const USD_BRL_FALLBACK_DEFAULT = 5.4;
 export const NOT_CONFIGURED_AI: AiConfig = {
   apiKey: null,
   model: AI_MODEL_DEFAULT,
+  categorizeModel: AI_CATEGORIZE_MODEL_DEFAULT,
   monthlyCapUsdCents: AI_MONTHLY_CAP_USD_CENTS_DEFAULT,
   usdBrlFallbackRate: USD_BRL_FALLBACK_DEFAULT,
 };
@@ -45,6 +48,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     ai: {
       apiKey: env.ANTHROPIC_API_KEY ?? null,
       model: env.FUMARENDE_AI_MODEL ?? AI_MODEL_DEFAULT,
+      categorizeModel: env.FUMARENDE_AI_CATEGORIZE_MODEL ?? AI_CATEGORIZE_MODEL_DEFAULT,
       monthlyCapUsdCents: Number(
         env.FUMARENDE_AI_MONTHLY_CAP_USD_CENTS ?? AI_MONTHLY_CAP_USD_CENTS_DEFAULT,
       ),

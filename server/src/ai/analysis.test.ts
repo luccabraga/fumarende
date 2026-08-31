@@ -10,6 +10,7 @@ const NOW = new Date(2026, 7, 15);
 const CFG: AiConfig = {
   apiKey: 'sk-test',
   model: 'claude-sonnet-5',
+  categorizeModel: 'claude-haiku-4-5',
   monthlyCapUsdCents: 400,
   usdBrlFallbackRate: 5.4,
 };

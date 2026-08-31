@@ -25,6 +25,7 @@ describe('loadConfig', () => {
     expect(c.ai).toEqual({
       apiKey: null,
       model: 'claude-sonnet-5',
+      categorizeModel: 'claude-haiku-4-5',
       monthlyCapUsdCents: 400,
       usdBrlFallbackRate: 5.4,
     });
@@ -34,12 +35,14 @@ describe('loadConfig', () => {
     const c = loadConfig({
       ANTHROPIC_API_KEY: 'sk-test',
       FUMARENDE_AI_MODEL: 'claude-opus-5',
+      FUMARENDE_AI_CATEGORIZE_MODEL: 'claude-sonnet-5',
       FUMARENDE_AI_MONTHLY_CAP_USD_CENTS: '1000',
       FUMARENDE_USD_BRL_FALLBACK: '5.9',
     });
     expect(c.ai).toEqual({
       apiKey: 'sk-test',
       model: 'claude-opus-5',
+      categorizeModel: 'claude-sonnet-5',
       monthlyCapUsdCents: 1000,
       usdBrlFallbackRate: 5.9,
     });

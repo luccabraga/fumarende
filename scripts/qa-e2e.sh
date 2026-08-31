@@ -257,6 +257,18 @@ as  "rule POST blank keyword -> 400" 400 "$(code POST /api/category-rules '{"key
 as  "rule POST unknown category -> 400" 400 "$(code POST /api/category-rules '{"keyword":"x","category":"Bogus"}')"
 
 echo
+echo "== Importação de extrato (Phase 2.3, sem chave) =="
+as  "import-preview without a key -> 503" 503 "$(code POST /api/expenses/import-preview '{"dataBase64":"JVBERi0xLjQK"}')"
+as  "import-preview empty upload -> 400" 400 "$(code POST /api/expenses/import-preview '{"dataBase64":""}')"
+body POST /api/category-rules '{"keyword":"mercado","category":"Alimentação"}' >/dev/null
+IC="$(body POST /api/expenses/import-confirm '{"rows":[{"date":"2026-08-03","description":"MERCADO X","amountCents":4500,"category":"","type":"nao-essencial"}]}')"
+aeq "import-confirm created count" "1" "$(echo "$IC" | jq -r '.created')"
+aeq "…row imported as Crédito" "Crédito" "$(body GET /api/expenses | jq -r '[.[] | select(.description=="MERCADO X")][0].paymentMethod')"
+aeq "…and auto-categorized from the rule" "Alimentação" "$(body GET /api/expenses | jq -r '[.[] | select(.description=="MERCADO X")][0].category')"
+as  "import-confirm malformed row -> 400" 400 "$(code POST /api/expenses/import-confirm '{"rows":[{"date":"nope","description":"x","amountCents":1,"category":"","type":"nao-essencial"}]}')"
+as  "import-confirm empty list -> 400" 400 "$(code POST /api/expenses/import-confirm '{"rows":[]}')"
+
+echo
 echo "== Análise (input endpoints the page reads) =="
 for ep in /api/income /api/expenses /api/emergency-fund /api/savings-target/2026-08 /api/goals /api/special-projects; do
   as "GET $ep -> 200 (cookie)" 200 "$(code GET "$ep")"

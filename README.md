@@ -24,8 +24,12 @@ slices:
    fallback for unknown merchants (which learns a new rule), on expense
    create and via a "Categorizar pendentes" sweep; a "Regras de
    categoria" management section on the Gastos page.
-3. PDF statement import — next.
-4. Web-search-backed macro context for the câmbio analysis.
+3. **PDF statement import** ✅ — upload a credit-card statement PDF;
+   `claude-sonnet-5` reads it natively and extracts the line items into
+   a review table (editable, checkboxes, kind badges, duplicate flags);
+   confirmed rows become categorized expenses. "Importar extrato (PDF)"
+   section on the Gastos page. No stored PDFs.
+4. Web-search-backed macro context for the câmbio analysis — next.
 
 Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;
 without a key every AI route returns a clean "not configured" response

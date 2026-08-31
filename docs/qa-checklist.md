@@ -2,9 +2,9 @@
 
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
 > the built server (throwaway DB, port 4199, no API key) and runs a
-> 120-assertion end-to-end pass over every module's API. Last run
-> 2026-08-31: **120/120 pass.** Unit + integration suites: **server 241,
-> frontend 122, all green.** Items below are marked `[x]` when the e2e
+> 127-assertion end-to-end pass over every module's API. Last run
+> 2026-08-31: **127/127 pass.** Unit + integration suites: **server 254,
+> frontend 125, all green.** Items below are marked `[x]` when the e2e
 > run or a unit test verifies them; `[ ]` items are browser-visual
 > checks only a human can confirm.
 
@@ -297,3 +297,41 @@
       `category_rules` row appears, and the Análise "IA este mês" figure
       ticks up a fraction of a cent. The "Regras de categoria" section
       adds/deletes rules.
+
+## Importação de extrato PDF (Phase 2.3)
+
+- [x] `callClaude` passes a content-block array straight through as the
+      user message content; the string form is unchanged (unit).
+- [x] `inferType` maps Moradia/Alimentação/Transporte/Saúde/Educação to
+      `essencial`, everything else (incl. blank) to `nao-essencial`
+      (unit).
+- [x] `extractStatement` — builds a `document` block
+      (`media_type: application/pdf`, base64) + a text block, calls
+      `claude-sonnet-5` with `max_tokens 4000`; parses the JSON array,
+      strips a ```json fence, drops invalid rows with a warning, returns
+      `[]` + a warning for a non-array reply; writes an `endpoint='import'`
+      ok row (with a db) / error row on an upstream failure (then
+      rethrows); `ClaudeNotConfiguredError` with no key and no fetch;
+      `BudgetExceededError` when the db shows the cap is reached, no
+      fetch (7 unit tests).
+- [x] `POST /api/expenses/import-preview` — `503` with no key, `400` on
+      an empty upload; a decoded PDF > 12 MB → `400`; `bodyLimit` raised
+      to 20 MB on this route only (e2e + integration).
+- [x] `POST /api/expenses/import-confirm` — one expense per row
+      (`paymentMethod: 'Crédito'`, `installmentTotal: null` even for a
+      "(3/12)" line), blank categories resolved via `categorize`,
+      `{ created }`; a malformed row or an empty list → `400` (e2e +
+      integration).
+- [x] `StatementImportSection` — a picked PDF is read to base64 (the
+      `data:` prefix stripped) and sent to `importPreviewStatement`; the
+      review table renders one row per preview row; `payment`/`fee` and
+      `duplicate` rows start unchecked; "Importar N selecionado(s)" sends
+      only checked rows with their edited category; a 429 preview shows
+      the limit warning; `warnings` render as a muted line (3 unit
+      tests).
+- [ ] In the browser: open "Importar extrato (PDF)" on the Gastos page,
+      pick a real credit-card statement → within a few seconds a review
+      table appears with the month's charges (payments/fees
+      pre-unchecked); confirm a few → they land in the expense list
+      categorized; a `claude_api_calls` row with `endpoint='import'`
+      exists; the Análise "IA este mês" figure rises a few cents.

@@ -29,6 +29,7 @@ export function ConsultorIA() {
   const [warn, setWarn] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
 
   useEffect(() => {
     Promise.all([api.getAiStatus(), api.listAiAnalyses()])
@@ -43,7 +44,7 @@ export function ConsultorIA() {
     setPending(kind);
     setWarn(null);
     try {
-      const row = await api.runAiAnalysis(kind);
+      const row = await api.runAiAnalysis(kind, kind === 'cambio' ? webSearch : false);
       setLatest(row);
       setHistory((h) => [row, ...h]);
       setStatus((s) =>
@@ -104,6 +105,20 @@ export function ConsultorIA() {
           </button>
         ))}
       </div>
+
+      {status?.webSearch && (
+        <label style={{ display: 'block', marginTop: 8, fontSize: 12, color: 'var(--text3)' }}>
+          <input
+            type="checkbox"
+            aria-label="com contexto de mercado"
+            checked={webSearch}
+            onChange={(e) => setWebSearch(e.target.checked)}
+            disabled={!configured || pending !== null}
+          />{' '}
+          com contexto de mercado (web) — usa busca na web no “Converter dólares agora?”, custa um
+          pouco mais
+        </label>
+      )}
 
       {warn && (
         <p style={{ fontSize: 12.5, color: 'var(--red, var(--text))', marginTop: 10 }}>{warn}</p>

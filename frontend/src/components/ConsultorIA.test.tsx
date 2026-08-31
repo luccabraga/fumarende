@@ -9,6 +9,7 @@ const STATUS_ON: api.AiStatus = {
   monthToDateUsdCents: 50,
   capUsdCents: 400,
   usdBrlRate: 5,
+  webSearch: true,
 };
 
 beforeEach(() => {
@@ -37,7 +38,7 @@ describe('ConsultorIA', () => {
     });
     render(<ConsultorIA />);
     fireEvent.click(await screen.findByRole('button', { name: 'Diagnóstico geral' }));
-    await waitFor(() => expect(run).toHaveBeenCalledWith('diagnostico'));
+    await waitFor(() => expect(run).toHaveBeenCalledWith('diagnostico', false));
     expect(await screen.findByRole('heading', { name: 'Diagnóstico' })).toBeInTheDocument();
   });
 
@@ -67,5 +68,31 @@ describe('ConsultorIA', () => {
     const toggle = await screen.findByRole('button', { name: /Histórico/ });
     fireEvent.click(toggle);
     expect(await screen.findByRole('heading', { name: 'Câmbio' })).toBeInTheDocument();
+  });
+
+  it('offers a market-context checkbox and passes it for câmbio only', async () => {
+    vi.spyOn(api, 'getAiStatus').mockResolvedValue(STATUS_ON);
+    const run = vi.spyOn(api, 'runAiAnalysis').mockResolvedValue({
+      id: 1,
+      createdAt: 'x',
+      kind: 'cambio',
+      responseMd: '# ok',
+      costUsdCents: 3,
+      model: 'm',
+    });
+    render(<ConsultorIA />);
+    fireEvent.click(await screen.findByLabelText('com contexto de mercado'));
+    fireEvent.click(screen.getByRole('button', { name: 'Converter dólares agora?' }));
+    await waitFor(() => expect(run).toHaveBeenCalledWith('cambio', true));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Diagnóstico geral' }));
+    await waitFor(() => expect(run).toHaveBeenCalledWith('diagnostico', false));
+  });
+
+  it('hides the checkbox when the server has web search off', async () => {
+    vi.spyOn(api, 'getAiStatus').mockResolvedValue({ ...STATUS_ON, webSearch: false });
+    render(<ConsultorIA />);
+    await screen.findByRole('button', { name: 'Diagnóstico geral' });
+    expect(screen.queryByLabelText('com contexto de mercado')).not.toBeInTheDocument();
   });
 });

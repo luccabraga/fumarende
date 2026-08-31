@@ -62,8 +62,16 @@ beforeEach(() => {
     monthToDateUsdCents: 0,
     capUsdCents: 400,
     usdBrlRate: 5,
+    webSearch: false,
   });
   vi.spyOn(api, 'listAiAnalyses').mockResolvedValue([]);
+  vi.spyOn(api, 'getAiUsage').mockResolvedValue({
+    monthToDateUsdCents: 0,
+    capUsdCents: 400,
+    usdBrlRate: 5,
+    byEndpoint: [],
+    recent: [],
+  });
 });
 
 describe('AnalisePage', () => {

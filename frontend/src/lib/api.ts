@@ -445,6 +445,7 @@ export interface AiStatus {
   monthToDateUsdCents: number;
   capUsdCents: number;
   usdBrlRate: number;
+  webSearch: boolean;
 }
 export interface AiAnalysis {
   id: number;
@@ -454,12 +455,39 @@ export interface AiAnalysis {
   costUsdCents: number;
   model: string;
 }
+export interface AiUsageEndpoint {
+  endpoint: string;
+  calls: number;
+  costUsdCents: number;
+}
+export interface AiUsageCall {
+  createdAt: string;
+  endpoint: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsdCents: number;
+  status: string;
+}
+export interface AiUsage {
+  monthToDateUsdCents: number;
+  capUsdCents: number;
+  usdBrlRate: number;
+  byEndpoint: AiUsageEndpoint[];
+  recent: AiUsageCall[];
+}
 export function getAiStatus(): Promise<AiStatus> {
   return request('/api/ai/status');
+}
+export function getAiUsage(): Promise<AiUsage> {
+  return request('/api/ai/usage');
 }
 export function listAiAnalyses(limit?: number): Promise<AiAnalysis[]> {
   return request(`/api/ai/analyses${limit ? `?limit=${limit}` : ''}`);
 }
-export function runAiAnalysis(kind: AiAnalysis['kind']): Promise<AiAnalysis> {
-  return request('/api/ai/analyses', { method: 'POST', body: JSON.stringify({ kind }) });
+export function runAiAnalysis(kind: AiAnalysis['kind'], webSearch = false): Promise<AiAnalysis> {
+  return request('/api/ai/analyses', {
+    method: 'POST',
+    body: JSON.stringify({ kind, webSearch }),
+  });
 }

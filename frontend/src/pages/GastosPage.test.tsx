@@ -8,6 +8,7 @@ import * as api from '../lib/api.js';
 beforeEach(() => {
   vi.spyOn(api, 'listFixedExpenses').mockResolvedValue([]);
   vi.spyOn(api, 'listCategoryRules').mockResolvedValue([]);
+  vi.spyOn(api, 'importPreviewStatement').mockResolvedValue({ rows: [], warnings: [] });
 });
 
 function expense(over: Partial<api.Expense>): api.Expense {

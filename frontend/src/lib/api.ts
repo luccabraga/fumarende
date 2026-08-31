@@ -176,6 +176,42 @@ export function categorizePending(): Promise<{
   return request('/api/expenses/categorize-pending', { method: 'POST' });
 }
 
+export type ImportLineKind = 'purchase' | 'payment' | 'fee' | 'fx';
+export interface ImportPreviewRow {
+  date: string;
+  description: string;
+  amountCents: number;
+  kind: ImportLineKind;
+  installment: { n: number; total: number } | null;
+  suggestedCategory: string;
+  suggestedType: 'essencial' | 'nao-essencial';
+  duplicate: boolean;
+}
+export interface ImportConfirmRow {
+  date: string;
+  description: string;
+  amountCents: number;
+  category: string;
+  type: 'essencial' | 'nao-essencial';
+}
+export function importPreviewStatement(
+  dataBase64: string,
+  filename?: string,
+): Promise<{ rows: ImportPreviewRow[]; warnings: string[] }> {
+  return request('/api/expenses/import-preview', {
+    method: 'POST',
+    body: JSON.stringify({ dataBase64, filename }),
+  });
+}
+export function importConfirmExpenses(
+  rows: ImportConfirmRow[],
+): Promise<{ created: number }> {
+  return request('/api/expenses/import-confirm', {
+    method: 'POST',
+    body: JSON.stringify({ rows }),
+  });
+}
+
 export interface FixedExpense {
   id: number;
   description: string;

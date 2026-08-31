@@ -4,6 +4,7 @@ import { formatCentsBRL, parseCentsFromInput } from '../lib/money.js';
 import { CATEGORIES, PAYMENT_METHODS } from '../lib/expenses.js';
 import { FixedExpensesSection } from '../components/FixedExpensesSection.js';
 import { CategoryRulesSection } from '../components/CategoryRulesSection.js';
+import { StatementImportSection } from '../components/StatementImportSection.js';
 
 const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 const AUTO = '';
@@ -232,6 +233,7 @@ export function GastosPage() {
 
       <FixedExpensesSection onApplied={refresh} />
       <CategoryRulesSection />
+      <StatementImportSection onImported={refresh} />
     </div>
   );
 }

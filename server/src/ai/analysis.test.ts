@@ -13,6 +13,8 @@ const CFG: AiConfig = {
   categorizeModel: 'claude-haiku-4-5',
   monthlyCapUsdCents: 400,
   usdBrlFallbackRate: 5.4,
+  webSearch: true,
+  webSearchMaxUses: 3,
 };
 
 function db() {

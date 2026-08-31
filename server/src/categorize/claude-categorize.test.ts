@@ -8,6 +8,8 @@ const CFG: AiConfig = {
   categorizeModel: 'claude-haiku-4-5',
   monthlyCapUsdCents: 400,
   usdBrlFallbackRate: 5.4,
+  webSearch: true,
+  webSearchMaxUses: 3,
 };
 
 function reply(text: string, usage = { input_tokens: 40, output_tokens: 12 }) {

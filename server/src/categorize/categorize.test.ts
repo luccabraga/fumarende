@@ -12,6 +12,8 @@ const KEY: AiConfig = {
   categorizeModel: 'claude-haiku-4-5',
   monthlyCapUsdCents: 400,
   usdBrlFallbackRate: 5.4,
+  webSearch: true,
+  webSearchMaxUses: 3,
 };
 const NOKEY: AiConfig = { ...KEY, apiKey: null };
 

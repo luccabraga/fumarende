@@ -11,6 +11,8 @@ const CFG: AiConfig = {
   categorizeModel: 'h',
   monthlyCapUsdCents: 100,
   usdBrlFallbackRate: 5,
+  webSearch: true,
+  webSearchMaxUses: 3,
 };
 
 function db() {

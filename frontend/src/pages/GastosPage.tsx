@@ -3,19 +3,23 @@ import * as api from '../lib/api.js';
 import { formatCentsBRL, parseCentsFromInput } from '../lib/money.js';
 import { CATEGORIES, PAYMENT_METHODS } from '../lib/expenses.js';
 import { FixedExpensesSection } from '../components/FixedExpensesSection.js';
+import { CategoryRulesSection } from '../components/CategoryRulesSection.js';
 
 const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
+const AUTO = '';
 
 export function GastosPage() {
   const [expenses, setExpenses] = useState<api.Expense[]>([]);
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(AUTO);
   const [type, setType] = useState<'essencial' | 'nao-essencial'>('essencial');
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
   const [installments, setInstallments] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [sweeping, setSweeping] = useState(false);
+  const [sweepMsg, setSweepMsg] = useState<string | null>(null);
 
   async function refresh() {
     setExpenses(await api.listExpenses());
@@ -60,9 +64,28 @@ export function GastosPage() {
       setDescription('');
       setAmount('');
       setInstallments('');
+      setCategory(AUTO);
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    }
+  }
+
+  async function sweep() {
+    setSweeping(true);
+    setSweepMsg(null);
+    try {
+      const r = await api.categorizePending();
+      await refresh();
+      setSweepMsg(
+        `${r.updated} categorizados · ${r.stillPending} pendentes${
+          r.stoppedAtCap ? ' (limite de IA atingido)' : ''
+        }`,
+      );
+    } catch {
+      setSweepMsg('Falha ao categorizar.');
+    } finally {
+      setSweeping(false);
     }
   }
 
@@ -84,6 +107,7 @@ export function GastosPage() {
   const essencial = expenses
     .filter((e) => e.type === 'essencial')
     .reduce((s, e) => s + e.amountCents, 0);
+  const pendingCount = expenses.filter((e) => e.category === '').length;
 
   return (
     <div>
@@ -113,6 +137,7 @@ export function GastosPage() {
           <label htmlFor="gasto-category" style={fieldStyle}>Categoria</label>
           <select id="gasto-category" className="field-input" value={category}
             onChange={(e) => setCategory(e.target.value)}>
+            <option value="">Automático (regras + IA)</option>
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
@@ -149,6 +174,17 @@ export function GastosPage() {
         </div>
       )}
 
+      {pendingCount > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <button type="button" className="button-primary" disabled={sweeping} onClick={sweep}>
+            {sweeping ? 'Categorizando…' : `Categorizar pendentes (${pendingCount})`}
+          </button>
+          {sweepMsg && (
+            <span style={{ marginLeft: 10, fontSize: 12.5, color: 'var(--text3)' }}>{sweepMsg}</span>
+          )}
+        </div>
+      )}
+
       <div className="card" style={{ marginBottom: 32 }}>
         {expenses.length === 0 && <p style={{ color: 'var(--text3)' }}>Nenhum gasto ainda.</p>}
         {expenses.map((e) => (
@@ -167,7 +203,13 @@ export function GastosPage() {
               {e.description}
               {e.installmentTotal !== null && ` (${e.installmentNumber}/${e.installmentTotal})`}
             </span>
-            <span style={{ color: 'var(--text3)', fontSize: 12 }}>{e.category}</span>
+            <span style={{ color: 'var(--text3)', fontSize: 12 }}>
+              {e.category ? (
+                e.category
+              ) : (
+                <span style={{ fontStyle: 'italic' }}>— sem categoria</span>
+              )}
+            </span>
             <span style={{ fontFamily: 'var(--mono)' }}>{formatCentsBRL(e.amountCents)}</span>
             <button
               type="button"
@@ -189,6 +231,7 @@ export function GastosPage() {
       </div>
 
       <FixedExpensesSection onApplied={refresh} />
+      <CategoryRulesSection />
     </div>
   );
 }

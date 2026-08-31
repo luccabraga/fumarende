@@ -7,6 +7,7 @@ import * as api from '../lib/api.js';
 // on mount. Stub that call so these tests only exercise the expense list.
 beforeEach(() => {
   vi.spyOn(api, 'listFixedExpenses').mockResolvedValue([]);
+  vi.spyOn(api, 'listCategoryRules').mockResolvedValue([]);
 });
 
 function expense(over: Partial<api.Expense>): api.Expense {
@@ -89,6 +90,34 @@ describe('GastosPage', () => {
     await waitFor(() =>
       expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ installmentTotal: 3 })),
     );
+  });
+
+  it('defaults the category select to Automático and submits a blank category', async () => {
+    vi.spyOn(api, 'listExpenses').mockResolvedValue([]);
+    const createSpy = vi.spyOn(api, 'createExpense').mockResolvedValue({ ids: [1] });
+    render(<GastosPage />);
+    await waitFor(() => expect(api.listExpenses).toHaveBeenCalled());
+
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-08-10' } });
+    fireEvent.change(screen.getByLabelText('Descrição'), { target: { value: 'IFOOD' } });
+    fireEvent.change(screen.getByLabelText('Valor (R$)'), { target: { value: '50' } });
+    fireEvent.click(screen.getByRole('button', { name: '+ Adicionar gasto' }));
+
+    await waitFor(() =>
+      expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ category: '' })),
+    );
+  });
+
+  it('shows "— sem categoria" for a blank-category row and a Categorizar pendentes button', async () => {
+    vi.spyOn(api, 'listExpenses').mockResolvedValue([expense({ id: 1, category: '' })]);
+    const sweep = vi
+      .spyOn(api, 'categorizePending')
+      .mockResolvedValue({ updated: 1, stillPending: 0, stoppedAtCap: false });
+    render(<GastosPage />);
+
+    expect(await screen.findByText('— sem categoria')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Categorizar pendentes/ }));
+    await waitFor(() => expect(sweep).toHaveBeenCalled());
   });
 
   it('deletes a one-off row via deleteExpense', async () => {

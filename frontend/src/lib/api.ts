@@ -151,6 +151,31 @@ export function deleteExpenseGroup(groupId: string): Promise<{ ok: true }> {
   return request(`/api/expenses/group/${groupId}`, { method: 'DELETE' });
 }
 
+export interface CategoryRule {
+  id: number;
+  keyword: string;
+  category: string;
+}
+export function listCategoryRules(): Promise<CategoryRule[]> {
+  return request('/api/category-rules');
+}
+export function createCategoryRule(input: {
+  keyword: string;
+  category: string;
+}): Promise<CategoryRule> {
+  return request('/api/category-rules', { method: 'POST', body: JSON.stringify(input) });
+}
+export function deleteCategoryRule(id: number): Promise<{ ok: true }> {
+  return request(`/api/category-rules/${id}`, { method: 'DELETE' });
+}
+export function categorizePending(): Promise<{
+  updated: number;
+  stillPending: number;
+  stoppedAtCap: boolean;
+}> {
+  return request('/api/expenses/categorize-pending', { method: 'POST' });
+}
+
 export interface FixedExpense {
   id: number;
   description: string;

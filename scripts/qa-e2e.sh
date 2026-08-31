@@ -239,6 +239,13 @@ as  "POST ai/analyses without a key -> 503" 503 "$(code POST /api/ai/analyses '{
 as  "POST ai/analyses bad kind -> 400" 400 "$(code POST /api/ai/analyses '{"kind":"nope"}')"
 aeq "ai/analyses list is empty" "[]" "$(body GET /api/ai/analyses | jq -c '.')"
 as  "ai/analyses?limit=0 -> 400" 400 "$(code GET '/api/ai/analyses?limit=0')"
+aeq "ai/status exposes webSearch (bool)" "true" "$(echo "$S" | jq -r '.webSearch | type == "boolean"')"
+U="$(body GET /api/ai/usage)"
+aeq "ai/usage byEndpoint is empty" "[]" "$(echo "$U" | jq -c '.byEndpoint')"
+aeq "ai/usage recent is empty" "[]" "$(echo "$U" | jq -c '.recent')"
+aeq "ai/usage cap is 400" "400" "$(echo "$U" | jq -r '.capUsdCents')"
+as  "ai/usage unauth -> 401" 401 "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/ai/usage")"
+as  "POST ai/analyses {cambio, webSearch} without a key -> 503" 503 "$(code POST /api/ai/analyses '{"kind":"cambio","webSearch":true}')"
 
 echo
 echo "== Categorização (Phase 2.2, sem chave) =="

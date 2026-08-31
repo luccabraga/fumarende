@@ -13,8 +13,7 @@ Backup & Dados) plus the Dashboard and a nav-shell month selector, on a
 Node/TypeScript + Fastify + better-sqlite3 server with a React/Vite
 frontend. Runs as a launchd service at `http://localhost:4173`.
 
-**Phase 2 in progress** — Claude API integration, split into four
-slices:
+**Phase 2 complete** — Claude API integration, in four slices:
 
 1. **Foundation + on-demand analysis** ✅ — a raw-`fetch` Claude client,
    a `claude_api_calls` / `ai_analyses` ledger, a soft monthly spend
@@ -29,7 +28,14 @@ slices:
    a review table (editable, checkboxes, kind badges, duplicate flags);
    confirmed rows become categorized expenses. "Importar extrato (PDF)"
    section on the Gastos page. No stored PDFs.
-4. Web-search-backed macro context for the câmbio analysis — next.
+4. **Câmbio web-search + cost tracker** ✅ — an opt-in "com contexto de
+   mercado" checkbox lets the câmbio analysis use Anthropic's web-search
+   tool for the live USD/BRL rate, trend, and news
+   (`FUMARENDE_AI_WEB_SEARCH=on|off`, `max_uses` 3). A "Uso da IA"
+   section on the Análise page shows month-to-date spend, a by-kind
+   breakdown, and the last 20 calls.
+
+Next: **Phase 2.5 — UX/UI polish** (see below).
 
 Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;
 without a key every AI route returns a clean "not configured" response

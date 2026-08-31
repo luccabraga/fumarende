@@ -2,9 +2,9 @@
 
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
 > the built server (throwaway DB, port 4199, no API key) and runs a
-> 127-assertion end-to-end pass over every module's API. Last run
-> 2026-08-31: **127/127 pass.** Unit + integration suites: **server 254,
-> frontend 125, all green.** Items below are marked `[x]` when the e2e
+> 133-assertion end-to-end pass over every module's API. Last run
+> 2026-08-31: **133/133 pass.** Unit + integration suites: **server 267,
+> frontend 130, all green.** Items below are marked `[x]` when the e2e
 > run or a unit test verifies them; `[ ]` items are browser-visual
 > checks only a human can confirm.
 
@@ -335,3 +335,41 @@
       pre-unchecked); confirm a few → they land in the expense list
       categorized; a `claude_api_calls` row with `endpoint='import'`
       exists; the Análise "IA este mês" figure rises a few cents.
+
+## Câmbio + contexto de mercado / Uso da IA (Phase 2.4)
+
+- [x] `FUMARENDE_AI_WEB_SEARCH` (`off`/`false`/`0` → false, default on)
+      and `FUMARENDE_AI_WEB_SEARCH_MAX` (default 3) parse into
+      `config.ai` (unit).
+- [x] `callClaude` includes a `tools` array in the body only when given;
+      surfaces `usage.server_tool_use.web_search_requests` as
+      `webSearchRequests` (0 default) (unit). `estimateCostUsdCents`
+      adds 1¢ per search (unit). `webSearchTool(3)` shape (unit).
+- [x] `runAnalysis(db, cfg, 'cambio', { webSearch: true })` — attaches
+      the tool, uses the market-aware system prompt, tags the ledger row
+      `endpoint='analysis:cambio+web'`, and bills the searches; with
+      `cfg.webSearch=false` or a non-câmbio kind it runs data-only with
+      no `tools` and `endpoint='analysis:${kind}'` (3 unit tests).
+      `aiStatus` reports `webSearch`.
+- [x] `aiUsage` — `monthToDateUsdCents` and `byEndpoint` are this-month
+      ok-only (errors excluded), `byEndpoint` sorted by cost desc,
+      `recent` is the last 20 by id regardless of status/month, rate
+      falls back to `usdBrlFallbackRate` (2 unit tests).
+- [x] `GET /api/ai/usage` → 200 shape (`byEndpoint`/`recent`/`capUsdCents`),
+      401 without a session; `GET /api/ai/status` includes `webSearch`;
+      `POST /api/ai/analyses { kind:'cambio', webSearch:true }` with no
+      key → 503 (e2e + integration).
+- [x] `ConsultorIA` shows the "com contexto de mercado" checkbox only
+      when `status.webSearch`; checking it + running the câmbio preset
+      calls `runAiAnalysis('cambio', true)`; other presets always pass
+      `false` (2 unit tests).
+- [x] `AiUsageSection` renders the month-to-date line, the by-kind
+      breakdown (with labels), the collapsible last-calls log, and a
+      soft error on fetch failure (3 unit tests). `AnalisePage` renders
+      the "Uso da IA" heading (unit).
+- [ ] In the browser (key configured): the câmbio checkbox is present;
+      running "Converter dólares agora?" with it checked returns an
+      answer that cites a current rate / source; the "Uso da IA" section
+      shows a `Câmbio + web` row whose cost is a few cents above a
+      data-only câmbio run; a `claude_api_calls` row with
+      `endpoint='analysis:cambio+web'` exists.

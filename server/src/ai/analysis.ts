@@ -3,6 +3,7 @@ import type { AiConfig } from '../config.js';
 import { buildSnapshot, type AnalysisSnapshot } from './snapshot.js';
 import { callClaude, ClaudeNotConfiguredError, ClaudeUpstreamError } from './client.js';
 import { estimateCostUsdCents } from './cost.js';
+import { isOverCap, monthToDateUsdCents } from './budget.js';
 
 export type AnalysisKind = 'diagnostico' | 'poupanca' | 'cambio';
 
@@ -69,20 +70,6 @@ export const ANALYSES: Record<
   },
 };
 
-function monthKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-
-function monthToDateUsdCents(db: Database.Database, now: Date): number {
-  return (
-    db
-      .prepare(
-        "SELECT COALESCE(SUM(cost_usd_cents),0) AS n FROM claude_api_calls WHERE status='ok' AND substr(created_at,1,7) = ?",
-      )
-      .get(monthKey(now)) as { n: number }
-  ).n;
-}
-
 export async function runAnalysis(
   db: Database.Database,
   cfg: AiConfig,
@@ -93,8 +80,9 @@ export async function runAnalysis(
   const spec = ANALYSES[kind];
   if (!spec) throw new Error(`unknown analysis kind: ${kind}`);
 
-  const mtd = monthToDateUsdCents(db, now);
-  if (mtd >= cfg.monthlyCapUsdCents) throw new BudgetExceededError(mtd, cfg.monthlyCapUsdCents);
+  if (isOverCap(db, cfg, now)) {
+    throw new BudgetExceededError(monthToDateUsdCents(db, now), cfg.monthlyCapUsdCents);
+  }
 
   const snapshot = buildSnapshot(db, now);
 

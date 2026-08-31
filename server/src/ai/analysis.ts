@@ -4,6 +4,7 @@ import { buildSnapshot, type AnalysisSnapshot } from './snapshot.js';
 import { callClaude, ClaudeNotConfiguredError, ClaudeUpstreamError } from './client.js';
 import { estimateCostUsdCents } from './cost.js';
 import { isOverCap, monthToDateUsdCents } from './budget.js';
+import { webSearchTool } from './web-search.js';
 
 export type AnalysisKind = 'diagnostico' | 'poupanca' | 'cambio';
 
@@ -22,6 +23,7 @@ export interface AiStatus {
   monthToDateUsdCents: number;
   capUsdCents: number;
   usdBrlRate: number;
+  webSearch: boolean;
 }
 
 export class BudgetExceededError extends Error {
@@ -70,11 +72,19 @@ export const ANALYSES: Record<
   },
 };
 
+const CAMBIO_WEB_SYSTEM =
+  'Você é um consultor de câmbio com acesso a busca na web. Use a ferramenta de busca ' +
+  'para verificar a cotação USD/BRL atual, a tendência recente (últimas semanas) e ' +
+  'notícias macroeconômicas relevantes (Brasil e EUA). Combine isso com o histórico do ' +
+  'usuário (contratos e cotações informadas). Cite as fontes entre parênteses. Deixe ' +
+  'claro que não é recomendação de investimento. Responda em português do Brasil, em ' +
+  'Markdown, no máximo ~280 palavras.';
+
 export async function runAnalysis(
   db: Database.Database,
   cfg: AiConfig,
   kind: AnalysisKind,
-  deps: { now?: Date; fetchImpl?: typeof fetch } = {},
+  deps: { now?: Date; fetchImpl?: typeof fetch; webSearch?: boolean } = {},
 ): Promise<AiAnalysisRow> {
   const now = deps.now ?? new Date();
   const spec = ANALYSES[kind];
@@ -84,13 +94,21 @@ export async function runAnalysis(
     throw new BudgetExceededError(monthToDateUsdCents(db, now), cfg.monthlyCapUsdCents);
   }
 
+  const useWeb = kind === 'cambio' && deps.webSearch === true && cfg.webSearch;
+  const endpoint = useWeb ? 'analysis:cambio+web' : `analysis:${kind}`;
+
   const snapshot = buildSnapshot(db, now);
 
   let result;
   try {
     result = await callClaude(
       cfg,
-      { system: spec.system, user: spec.userPrompt(snapshot), maxTokens: spec.maxTokens },
+      {
+        system: useWeb ? CAMBIO_WEB_SYSTEM : spec.system,
+        user: spec.userPrompt(snapshot),
+        maxTokens: useWeb ? 1400 : spec.maxTokens,
+        tools: useWeb ? [webSearchTool(cfg.webSearchMaxUses)] : undefined,
+      },
       deps.fetchImpl ?? fetch,
     );
   } catch (err) {
@@ -99,14 +117,19 @@ export async function runAnalysis(
       db.prepare(
         `INSERT INTO claude_api_calls (created_at, endpoint, model, status, error_message)
          VALUES (?, ?, ?, 'error', ?)`,
-      ).run(now.toISOString(), `analysis:${kind}`, cfg.model, String(err.message).slice(0, 500));
+      ).run(now.toISOString(), endpoint, cfg.model, String(err.message).slice(0, 500));
     }
     throw err;
   }
 
   let cost = 0;
   try {
-    cost = estimateCostUsdCents(cfg.model, result.inputTokens, result.outputTokens);
+    cost = estimateCostUsdCents(
+      cfg.model,
+      result.inputTokens,
+      result.outputTokens,
+      result.webSearchRequests,
+    );
   } catch {
     cost = 0; // unpriced model — tokens known, price not; keep the ledger honest
   }
@@ -120,7 +143,7 @@ export async function runAnalysis(
         )
         .run(
           now.toISOString(),
-          `analysis:${kind}`,
+          endpoint,
           cfg.model,
           result.inputTokens,
           result.outputTokens,
@@ -160,17 +183,21 @@ export function listAnalyses(db: Database.Database, limit = 20): AiAnalysisRow[]
     .all(n) as AiAnalysisRow[];
 }
 
-export function aiStatus(db: Database.Database, cfg: AiConfig, now: Date = new Date()): AiStatus {
+/** Latest self-reported USD/BRL quote, else the configured fallback. */
+export function latestUsdBrlRate(db: Database.Database, cfg: AiConfig): number {
   const quote = db
-    .prepare(
-      'SELECT rate FROM dollar_quotes WHERE deleted_at IS NULL ORDER BY month DESC LIMIT 1',
-    )
+    .prepare('SELECT rate FROM dollar_quotes WHERE deleted_at IS NULL ORDER BY month DESC LIMIT 1')
     .get() as { rate: number } | undefined;
+  return quote?.rate ?? cfg.usdBrlFallbackRate;
+}
+
+export function aiStatus(db: Database.Database, cfg: AiConfig, now: Date = new Date()): AiStatus {
   return {
     configured: cfg.apiKey !== null,
     model: cfg.model,
     monthToDateUsdCents: monthToDateUsdCents(db, now),
     capUsdCents: cfg.monthlyCapUsdCents,
-    usdBrlRate: quote?.rate ?? cfg.usdBrlFallbackRate,
+    usdBrlRate: latestUsdBrlRate(db, cfg),
+    webSearch: cfg.webSearch,
   };
 }

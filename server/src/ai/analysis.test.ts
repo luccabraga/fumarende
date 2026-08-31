@@ -97,6 +97,74 @@ describe('listAnalyses / aiStatus', () => {
     expect(st.configured).toBe(true);
     expect(st.capUsdCents).toBe(400);
     expect(st.usdBrlRate).toBeGreaterThan(0); // seed writes dollar_quotes
+    expect(st.webSearch).toBe(true);
     expect(aiStatus(d, { ...CFG, apiKey: null }, NOW).configured).toBe(false);
+  });
+});
+
+function webReply(text: string, searches: number) {
+  return vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        content: [{ type: 'text', text }],
+        usage: {
+          input_tokens: 2000,
+          output_tokens: 600,
+          server_tool_use: { web_search_requests: searches },
+        },
+      }),
+      { status: 200 },
+    ),
+  ) as unknown as typeof fetch;
+}
+
+describe('runAnalysis web search', () => {
+  it('câmbio with webSearch attaches the tool, tags the ledger, and bills the searches', async () => {
+    const d = db();
+    const f = webReply('# Câmbio\nRate ~5,1 (fonte).', 2);
+    const row = await runAnalysis(d, CFG, 'cambio', { now: NOW, fetchImpl: f, webSearch: true });
+    expect(row.kind).toBe('cambio');
+
+    const body = JSON.parse(
+      (f as unknown as { mock: { calls: [string, { body: string }][] } }).mock.calls[0][1].body,
+    );
+    expect(Array.isArray(body.tools)).toBe(true);
+    expect(body.system).toMatch(/busca na web/i);
+
+    const call = d
+      .prepare("SELECT endpoint, cost_usd_cents c FROM claude_api_calls WHERE status='ok'")
+      .get() as { endpoint: string; c: number };
+    expect(call.endpoint).toBe('analysis:cambio+web');
+    expect(call.c).toBeGreaterThanOrEqual(2);
+  });
+
+  it('câmbio with webSearch but cfg.webSearch=false runs data-only', async () => {
+    const d = db();
+    const f = webReply('# Câmbio\nSó histórico.', 0);
+    await runAnalysis(d, { ...CFG, webSearch: false }, 'cambio', {
+      now: NOW,
+      fetchImpl: f,
+      webSearch: true,
+    });
+    const body = JSON.parse(
+      (f as unknown as { mock: { calls: [string, { body: string }][] } }).mock.calls[0][1].body,
+    );
+    expect(body).not.toHaveProperty('tools');
+    expect(d.prepare("SELECT endpoint FROM claude_api_calls WHERE status='ok'").get()).toEqual({
+      endpoint: 'analysis:cambio',
+    });
+  });
+
+  it('webSearch is ignored for non-câmbio kinds', async () => {
+    const d = db();
+    const f = webReply('# Diag\nok.', 0);
+    await runAnalysis(d, CFG, 'diagnostico', { now: NOW, fetchImpl: f, webSearch: true });
+    const body = JSON.parse(
+      (f as unknown as { mock: { calls: [string, { body: string }][] } }).mock.calls[0][1].body,
+    );
+    expect(body).not.toHaveProperty('tools');
+    expect(d.prepare("SELECT endpoint FROM claude_api_calls WHERE status='ok'").get()).toEqual({
+      endpoint: 'analysis:diagnostico',
+    });
   });
 });

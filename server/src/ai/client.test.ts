@@ -45,7 +45,12 @@ describe('callClaude', () => {
       { system: 'sys', user: 'ask', maxTokens: 900 },
       fetchImpl as unknown as typeof fetch,
     );
-    expect(res).toEqual({ text: 'Olá mundo', inputTokens: 12, outputTokens: 5 });
+    expect(res).toEqual({
+      text: 'Olá mundo',
+      inputTokens: 12,
+      outputTokens: 5,
+      webSearchRequests: 0,
+    });
 
     const [url, init] = fetchImpl.mock.calls[0];
     expect(url).toBe('https://api.anthropic.com/v1/messages');
@@ -77,6 +82,39 @@ describe('callClaude', () => {
     );
     expect(err).toBeInstanceOf(ClaudeUpstreamError);
     expect(err.httpStatus).toBeNull();
+  });
+
+  it('includes a tools array in the request body when given, and reports web_search_requests', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          content: [{ type: 'text', text: 'ok' }],
+          usage: {
+            input_tokens: 10,
+            output_tokens: 4,
+            server_tool_use: { web_search_requests: 2 },
+          },
+        }),
+        { status: 200 },
+      ),
+    );
+    const tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }];
+    const res = await callClaude(
+      CFG,
+      { system: 's', user: 'u', tools },
+      fetchImpl as unknown as typeof fetch,
+    );
+    expect(res.webSearchRequests).toBe(2);
+    const body = JSON.parse((fetchImpl.mock.calls[0] as [string, { body: string }])[1].body);
+    expect(body.tools).toEqual(tools);
+  });
+
+  it('omits tools and reports 0 web searches by default', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(okResponse());
+    const res = await callClaude(CFG, { system: 's', user: 'u' }, fetchImpl as unknown as typeof fetch);
+    expect(res.webSearchRequests).toBe(0);
+    const body = JSON.parse((fetchImpl.mock.calls[0] as [string, { body: string }])[1].body);
+    expect(body).not.toHaveProperty('tools');
   });
 
   it('passes a content-block array straight through as the message content', async () => {

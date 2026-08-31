@@ -3,10 +3,18 @@ export const MODEL_RATES_USD_PER_MTOK: Record<string, { input: number; output: n
   'claude-haiku-4-5': { input: 1, output: 5 },
 };
 
-/** USD cents, rounded half-up. Throws on an unpriced model. */
-export function estimateCostUsdCents(model: string, inTok: number, outTok: number): number {
+/**
+ * USD cents, rounded half-up on the token part, plus 1 cent per web
+ * search request ($10 / 1,000 searches). Throws on an unpriced model.
+ */
+export function estimateCostUsdCents(
+  model: string,
+  inTok: number,
+  outTok: number,
+  webSearchRequests = 0,
+): number {
   const rate = MODEL_RATES_USD_PER_MTOK[model];
   if (!rate) throw new Error(`unknown model rate: ${model}`);
   const usd = (inTok / 1_000_000) * rate.input + (outTok / 1_000_000) * rate.output;
-  return Math.round(usd * 100);
+  return Math.round(usd * 100) + webSearchRequests * 1;
 }

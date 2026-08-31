@@ -14,6 +14,12 @@ describe('estimateCostUsdCents', () => {
     expect(estimateCostUsdCents('claude-haiku-4-5', 1_000_000, 100_000)).toBe(150);
   });
 
+  it('adds one cent per web search request', () => {
+    expect(estimateCostUsdCents('claude-sonnet-5', 1000, 500, 3)).toBe(
+      estimateCostUsdCents('claude-sonnet-5', 1000, 500) + 3,
+    );
+  });
+
   it('throws for an unknown model', () => {
     expect(() => estimateCostUsdCents('mystery', 10, 10)).toThrow(/unknown model/i);
   });

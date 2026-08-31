@@ -21,6 +21,7 @@ export interface ClaudeResult {
   text: string;
   inputTokens: number;
   outputTokens: number;
+  webSearchRequests: number;
 }
 
 /** A single Anthropic message content block (text, document, image, …). */
@@ -30,7 +31,7 @@ const ENDPOINT = 'https://api.anthropic.com/v1/messages';
 
 export async function callClaude(
   cfg: AiConfig,
-  args: { system: string; user: string | ContentBlock[]; maxTokens?: number },
+  args: { system: string; user: string | ContentBlock[]; maxTokens?: number; tools?: unknown[] },
   fetchImpl: typeof fetch = fetch,
 ): Promise<ClaudeResult> {
   if (cfg.apiKey === null) throw new ClaudeNotConfiguredError();
@@ -49,6 +50,7 @@ export async function callClaude(
         max_tokens: args.maxTokens ?? 1200,
         system: args.system,
         messages: [{ role: 'user', content: args.user }],
+        ...(args.tools ? { tools: args.tools } : {}),
       }),
     });
   } catch (err) {
@@ -62,7 +64,11 @@ export async function callClaude(
 
   const json = (await res.json()) as {
     content?: { type: string; text?: string }[];
-    usage?: { input_tokens?: number; output_tokens?: number };
+    usage?: {
+      input_tokens?: number;
+      output_tokens?: number;
+      server_tool_use?: { web_search_requests?: number };
+    };
   };
   const text = (json.content ?? [])
     .filter((c) => c.type === 'text' && typeof c.text === 'string')
@@ -72,5 +78,6 @@ export async function callClaude(
     text,
     inputTokens: json.usage?.input_tokens ?? 0,
     outputTokens: json.usage?.output_tokens ?? 0,
+    webSearchRequests: json.usage?.server_tool_use?.web_search_requests ?? 0,
   };
 }

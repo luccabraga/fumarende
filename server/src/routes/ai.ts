@@ -11,6 +11,7 @@ import {
   type AnalysisKind,
 } from '../ai/analysis.js';
 import { ClaudeNotConfiguredError, ClaudeUpstreamError } from '../ai/client.js';
+import { aiUsage } from '../ai/usage.js';
 
 export function registerAiRoutes(
   app: FastifyInstance,
@@ -18,6 +19,8 @@ export function registerAiRoutes(
   cfg: AiConfig,
 ): void {
   app.get('/api/ai/status', { preHandler: requireAuth(db) }, async () => aiStatus(db, cfg));
+
+  app.get('/api/ai/usage', { preHandler: requireAuth(db) }, async () => aiUsage(db, cfg));
 
   app.get<{ Querystring: { limit?: string } }>(
     '/api/ai/analyses',
@@ -35,7 +38,7 @@ export function registerAiRoutes(
     },
   );
 
-  app.post<{ Body: { kind?: string } }>(
+  app.post<{ Body: { kind?: string; webSearch?: boolean } }>(
     '/api/ai/analyses',
     { preHandler: requireAuth(db) },
     async (request, reply) => {
@@ -44,7 +47,9 @@ export function registerAiRoutes(
         return reply.code(400).send({ error: 'unknown analysis kind' });
       }
       try {
-        const row = await runAnalysis(db, cfg, kind as AnalysisKind);
+        const row = await runAnalysis(db, cfg, kind as AnalysisKind, {
+          webSearch: request.body?.webSearch === true,
+        });
         return reply.code(201).send(row);
       } catch (err) {
         if (err instanceof ClaudeNotConfiguredError) {

@@ -59,4 +59,33 @@ describe('AI routes (no key configured)', () => {
     ).toBe(400);
     await app.close();
   });
+
+  it('GET /api/ai/status includes webSearch; GET /api/ai/usage returns the shape', async () => {
+    const { app, session } = await authedApp();
+    const status = await app.inject({ method: 'GET', url: '/api/ai/status', cookies: { session } });
+    expect(typeof status.json().webSearch).toBe('boolean');
+
+    const usage = await app.inject({ method: 'GET', url: '/api/ai/usage', cookies: { session } });
+    expect(usage.statusCode).toBe(200);
+    expect(usage.json()).toMatchObject({ byEndpoint: [], recent: [], capUsdCents: 400 });
+    await app.close();
+  });
+
+  it('GET /api/ai/usage is 401 without a session', async () => {
+    const app = await buildApp(new Database(':memory:'));
+    expect((await app.inject({ method: 'GET', url: '/api/ai/usage' })).statusCode).toBe(401);
+    await app.close();
+  });
+
+  it('POST /api/ai/analyses accepts a webSearch flag (still 503 with no key)', async () => {
+    const { app, session } = await authedApp();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/ai/analyses',
+      cookies: { session },
+      payload: { kind: 'cambio', webSearch: true },
+    });
+    expect(res.statusCode).toBe(503);
+    await app.close();
+  });
 });

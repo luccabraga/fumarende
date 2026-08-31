@@ -82,6 +82,7 @@ describe('AnalisePage', () => {
     expect(screen.getByRole('heading', { name: 'Projeção 12 meses' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Cenários' })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Consultor IA' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Uso da IA' })).toBeInTheDocument();
     expect(screen.getByText(/R\$ 5\.000,00/)).toBeInTheDocument();
   });
 

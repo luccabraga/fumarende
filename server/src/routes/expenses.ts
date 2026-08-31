@@ -10,8 +10,12 @@ import {
   type NewExpense,
 } from '../db/expenses.js';
 import { categorize } from '../categorize/categorize.js';
-import { listRules } from '../categorize/rules.js';
-import { isOverCap } from '../ai/budget.js';
+import { listRules, matchRule } from '../categorize/rules.js';
+import { isOverCap, monthToDateUsdCents } from '../ai/budget.js';
+import { extractStatement } from '../import/extract.js';
+import { inferType } from '../import/expense-type.js';
+import { ClaudeNotConfiguredError, ClaudeUpstreamError } from '../ai/client.js';
+import { BudgetExceededError } from '../ai/analysis.js';
 
 interface CreateExpenseBody {
   date: string;
@@ -75,6 +79,126 @@ export function registerExpenseRoutes(
           .get() as { n: number }
       ).n;
       return { updated, stillPending, stoppedAtCap };
+    },
+  );
+
+  app.post<{ Body: { dataBase64?: unknown; filename?: unknown } }>(
+    '/api/expenses/import-preview',
+    { preHandler: requireAuth(db), bodyLimit: 20 * 1024 * 1024 },
+    async (request, reply) => {
+      const dataBase64 = request.body?.dataBase64;
+      if (typeof dataBase64 !== 'string' || dataBase64.trim() === '') {
+        return reply.code(400).send({ error: 'dataBase64 is required' });
+      }
+      if (Buffer.from(dataBase64, 'base64').length > 12 * 1024 * 1024) {
+        return reply.code(400).send({ error: 'PDF acima de 12 MB' });
+      }
+
+      let extraction;
+      try {
+        extraction = await extractStatement(aiConfig, dataBase64, { db });
+      } catch (err) {
+        if (err instanceof ClaudeNotConfiguredError) {
+          return reply.code(503).send({ error: 'IA não configurada' });
+        }
+        if (err instanceof BudgetExceededError) {
+          return reply.code(429).send({
+            error: 'Limite mensal de IA atingido',
+            monthToDateUsdCents: monthToDateUsdCents(db),
+            capUsdCents: aiConfig.monthlyCapUsdCents,
+          });
+        }
+        if (err instanceof ClaudeUpstreamError) {
+          return reply.code(502).send({ error: 'Falha ao ler o PDF' });
+        }
+        throw err;
+      }
+
+      const rules = listRules(db);
+      const seen = new Set(
+        (
+          db
+            .prepare(
+              'SELECT date, amount_cents AS amountCents, description FROM expenses WHERE deleted_at IS NULL',
+            )
+            .all() as { date: string; amountCents: number; description: string }[]
+        ).map((e) => `${e.date}|${e.amountCents}|${e.description}`),
+      );
+
+      const rows = extraction.rows.map((r) => {
+        const suggestedCategory = matchRule(rules, r.description)?.category ?? '';
+        return {
+          ...r,
+          suggestedCategory,
+          suggestedType: inferType(suggestedCategory),
+          duplicate: seen.has(`${r.date}|${r.amountCents}|${r.description}`),
+        };
+      });
+
+      return { rows, warnings: extraction.warnings };
+    },
+  );
+
+  app.post<{
+    Body: {
+      rows?: {
+        date?: unknown;
+        description?: unknown;
+        amountCents?: unknown;
+        category?: unknown;
+        type?: unknown;
+      }[];
+    };
+  }>(
+    '/api/expenses/import-confirm',
+    { preHandler: requireAuth(db) },
+    async (request, reply) => {
+      const rows = request.body?.rows;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return reply.code(400).send({ error: 'rows must be a non-empty array' });
+      }
+      for (let i = 0; i < rows.length; i += 1) {
+        const r = rows[i];
+        if (
+          typeof r.date !== 'string' ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(r.date) ||
+          typeof r.description !== 'string' ||
+          r.description.trim() === '' ||
+          !Number.isInteger(r.amountCents) ||
+          (r.amountCents as number) <= 0 ||
+          (r.type !== 'essencial' && r.type !== 'nao-essencial')
+        ) {
+          return reply.code(400).send({ error: 'linha inválida', index: i });
+        }
+      }
+
+      // resolve blank categories BEFORE the synchronous transaction
+      const resolved: string[] = [];
+      for (const r of rows) {
+        let category = typeof r.category === 'string' ? r.category : '';
+        if (category.trim() === '') {
+          category =
+            (await categorize(db, aiConfig, { description: r.description as string })).category ?? '';
+        }
+        resolved.push(category);
+      }
+
+      db.transaction(() => {
+        rows.forEach((r, i) => {
+          createExpense(db, {
+            date: r.date as string,
+            description: (r.description as string).trim(),
+            amountCents: r.amountCents as number,
+            category: resolved[i],
+            type: r.type as 'essencial' | 'nao-essencial',
+            paymentMethod: 'Crédito',
+            installmentTotal: null,
+            notes: null,
+          });
+        });
+      })();
+
+      return { created: rows.length };
     },
   );
 

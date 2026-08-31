@@ -219,3 +219,105 @@ describe('expense routes', () => {
     await app.close();
   });
 });
+
+describe('expense import', () => {
+  it('import-preview -> 503 with no key, 400 on an empty upload', async () => {
+    const { app, sessionCookie } = await authedApp();
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/expenses/import-preview',
+          cookies: { session: sessionCookie },
+          payload: { dataBase64: 'JVBERi0xLjQK' },
+        })
+      ).statusCode,
+    ).toBe(503);
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/expenses/import-preview',
+          cookies: { session: sessionCookie },
+          payload: { dataBase64: '' },
+        })
+      ).statusCode,
+    ).toBe(400);
+    await app.close();
+  });
+
+  it('import-confirm creates one expense per row and categorizes blanks', async () => {
+    const { app, sessionCookie } = await authedApp();
+    addRule(app.dbForTests, 'mercado', 'Alimentação');
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/expenses/import-confirm',
+      cookies: { session: sessionCookie },
+      payload: {
+        rows: [
+          {
+            date: '2026-08-03',
+            description: 'MERCADO LIVRE',
+            amountCents: 4500,
+            category: '',
+            type: 'nao-essencial',
+          },
+          {
+            date: '2026-08-04',
+            description: 'Cinema (2/2)',
+            amountCents: 3000,
+            category: 'Lazer',
+            type: 'nao-essencial',
+          },
+        ],
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ created: 2 });
+
+    const list = (
+      await app.inject({ method: 'GET', url: '/api/expenses', cookies: { session: sessionCookie } })
+    ).json();
+    expect(list).toHaveLength(2);
+    expect(list.every((e: { paymentMethod: string }) => e.paymentMethod === 'Crédito')).toBe(true);
+    expect(list.every((e: { installmentTotal: number | null }) => e.installmentTotal === null)).toBe(
+      true,
+    );
+    const byDesc = Object.fromEntries(
+      list.map((e: { description: string; category: string }) => [e.description, e.category]),
+    );
+    expect(byDesc['MERCADO LIVRE']).toBe('Alimentação');
+    expect(byDesc['Cinema (2/2)']).toBe('Lazer');
+    await app.close();
+  });
+
+  it('import-confirm rejects a malformed row and an empty list', async () => {
+    const { app, sessionCookie } = await authedApp();
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/expenses/import-confirm',
+          cookies: { session: sessionCookie },
+          payload: {
+            rows: [
+              { date: 'nope', description: 'x', amountCents: 1, category: '', type: 'nao-essencial' },
+            ],
+          },
+        })
+      ).statusCode,
+    ).toBe(400);
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/expenses/import-confirm',
+          cookies: { session: sessionCookie },
+          payload: { rows: [] },
+        })
+      ).statusCode,
+    ).toBe(400);
+    await app.close();
+  });
+});

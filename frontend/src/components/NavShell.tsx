@@ -4,18 +4,40 @@ import { useAuth } from '../context/AuthContext.js';
 import { useMonth } from '../context/MonthContext.js';
 import { useTheme } from '../context/ThemeContext.js';
 
-const NAV_ITEMS: { to: string; label: string }[] = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/receitas', label: 'Receitas' },
-  { to: '/cambio', label: 'Câmbio' },
-  { to: '/gastos', label: 'Gastos' },
-  { to: '/parcelas', label: 'Parcelas' },
-  { to: '/reserva', label: 'Reserva' },
-  { to: '/metas', label: 'Metas' },
-  { to: '/projetos', label: 'Projetos Especiais' },
-  { to: '/analise', label: 'Análise' },
-  { to: '/historico-dolar', label: 'Histórico Dólar' },
-  { to: '/backup', label: 'Backup & Dados' },
+const NAV_HOME = { to: '/', label: 'Dashboard' };
+
+const NAV_GROUPS: { label: string; items: { to: string; label: string }[] }[] = [
+  {
+    label: 'Entradas',
+    items: [
+      { to: '/receitas', label: 'Receitas' },
+      { to: '/cambio', label: 'Câmbio' },
+      { to: '/historico-dolar', label: 'Dólar' },
+    ],
+  },
+  {
+    label: 'Saídas',
+    items: [
+      { to: '/gastos', label: 'Gastos' },
+      { to: '/parcelas', label: 'Parcelas' },
+    ],
+  },
+  {
+    label: 'Reserva & Metas',
+    items: [
+      { to: '/reserva', label: 'Reserva' },
+      { to: '/metas', label: 'Metas' },
+      { to: '/projetos', label: 'Projetos' },
+    ],
+  },
+  {
+    label: 'Análise',
+    items: [{ to: '/analise', label: 'Análise' }],
+  },
+  {
+    label: 'Config',
+    items: [{ to: '/backup', label: 'Backup & Dados' }],
+  },
 ];
 
 const THEME_CHOICES: { value: 'light' | 'dark'; label: string }[] = [
@@ -83,16 +105,29 @@ export function NavShell() {
 
           <ThemeToggle />
 
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) => `nav__link${isActive ? ' nav__link--active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              {item.label}
-            </NavLink>
+          <NavLink
+            to={NAV_HOME.to}
+            end
+            className={({ isActive }) => `nav__link${isActive ? ' nav__link--active' : ''}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            {NAV_HOME.label}
+          </NavLink>
+
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label} className="nav__group">
+              <span className="nav__group-label">{group.label}</span>
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) => `nav__link${isActive ? ' nav__link--active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
           ))}
 
           <button

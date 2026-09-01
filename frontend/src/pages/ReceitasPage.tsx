@@ -3,8 +3,9 @@ import * as api from '../lib/api.js';
 import { formatCentsBRL, formatCentsUSD, parseCentsFromInput } from '../lib/money.js';
 
 export function ReceitasPage() {
+  const todayISO = () => new Date().toISOString().slice(0, 10);
   const [entries, setEntries] = useState<api.IncomeEntry[]>([]);
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(todayISO);
   const [amount, setAmount] = useState('');
   const [amountUsd, setAmountUsd] = useState('');
   const [description, setDescription] = useState('');
@@ -47,7 +48,7 @@ export function ReceitasPage() {
         description: description || null,
         source: source || null,
       });
-      setDate('');
+      setDate(todayISO());
       setAmount('');
       setAmountUsd('');
       setDescription('');

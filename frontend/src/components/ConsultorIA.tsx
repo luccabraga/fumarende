@@ -17,10 +17,6 @@ const KIND_LABEL: Record<api.AiAnalysis['kind'], string> = {
   cambio: 'Câmbio',
 };
 
-function brl(usdCents: number, rate: number): string {
-  return formatCentsBRL(Math.round(usdCents * rate));
-}
-
 export function ConsultorIA() {
   const [status, setStatus] = useState<api.AiStatus | null>(null);
   const [history, setHistory] = useState<api.AiAnalysis[]>([]);
@@ -66,23 +62,7 @@ export function ConsultorIA() {
 
   return (
     <div className="card">
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          flexWrap: 'wrap',
-          gap: 8,
-        }}
-      >
-        <h2 style={h2Style}>Consultor IA</h2>
-        {status && (
-          <span style={{ fontSize: 11, color: 'var(--text3)' }}>
-            IA este mês: {brl(status.monthToDateUsdCents, status.usdBrlRate)} /{' '}
-            {brl(status.capUsdCents, status.usdBrlRate)}
-          </span>
-        )}
-      </div>
+      <h2 style={h2Style}>Consultor IA</h2>
 
       {loadError && <p className="error-text" style={{ marginBottom: 10 }}>{loadError}</p>}
 

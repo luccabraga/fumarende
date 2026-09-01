@@ -8,8 +8,9 @@ const INSTITUTIONS = ['Banco Inter', 'Wise', 'Avenue', 'Nomad', 'Outro'];
 const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 
 export function CambioPage() {
+  const todayISO = () => new Date().toISOString().slice(0, 10);
   const [contracts, setContracts] = useState<api.ExchangeContract[]>([]);
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(todayISO);
   const [institution, setInstitution] = useState(INSTITUTIONS[0]);
   const [operationType, setOperationType] = useState<'compra' | 'venda'>('compra');
   const [amountUsd, setAmountUsd] = useState('');
@@ -90,7 +91,7 @@ export function CambioPage() {
         sourcePdfRef: sourcePdfRef || null,
         notes: notes || null,
       });
-      setDate('');
+      setDate(todayISO());
       setAmountUsd('');
       setRateInput('');
       setPtaxInput('');

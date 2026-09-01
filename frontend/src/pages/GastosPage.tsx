@@ -10,8 +10,9 @@ const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 const AUTO = '';
 
 export function GastosPage() {
+  const todayISO = () => new Date().toISOString().slice(0, 10);
   const [expenses, setExpenses] = useState<api.Expense[]>([]);
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(todayISO);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<string>(AUTO);
@@ -61,7 +62,7 @@ export function GastosPage() {
         installmentTotal,
         notes: null,
       });
-      setDate('');
+      setDate(todayISO());
       setDescription('');
       setAmount('');
       setInstallments('');

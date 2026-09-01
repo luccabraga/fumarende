@@ -27,7 +27,7 @@ function AppShell() {
 
 function Router() {
   const { passwordSet, authenticated } = useAuth();
-  if (passwordSet === null) return null;
+  if (passwordSet === null) return <div className="app-boot" />;
 
   return (
     <BrowserRouter>

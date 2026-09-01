@@ -40,9 +40,9 @@
   --border: rgba(20, 20, 30, 0.1);
   --border-strong: rgba(20, 20, 30, 0.18);
   --text: #1a1c22;
-  --text-muted: #5c6270;
-  --text-subtle: #8b909c;
-  --accent: #00b7a2;
+  --text-muted: #545a68;
+  --text-subtle: #6b7280;
+  --accent: #0a8a78;
   --accent-contrast: #ffffff;
   --violet: #6b52d6;
   --danger: #d63a58;
@@ -220,6 +220,7 @@ a:focus-visible {
 }
 .mono {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- layout helpers ---- */
@@ -316,6 +317,19 @@ a:focus-visible {
   background: var(--accent);
   color: var(--accent-contrast);
 }
+.nav__group {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-3);
+}
+.nav__group-label {
+  padding: 0 22px var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
 .nav__link {
   padding: 9px 22px;
   font-size: var(--text-sm);
@@ -338,7 +352,17 @@ a:focus-visible {
 }
 .main {
   flex: 1;
+  min-width: 0;
   padding: var(--space-6) var(--space-7);
+}
+.main > * {
+  max-width: 1080px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.app-boot {
+  min-height: 100vh;
+  background: var(--bg);
 }
 
 @media (max-width: 800px) {

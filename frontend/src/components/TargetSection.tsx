@@ -14,8 +14,6 @@ interface TargetSectionProps {
   emptyText: string;
 }
 
-const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
-
 export function TargetSection({ api, showNotes, heading, emptyText }: TargetSectionProps) {
   const r = useResource(() => api.list(), [api]);
   const items = r.data ?? [];
@@ -71,36 +69,32 @@ export function TargetSection({ api, showNotes, heading, emptyText }: TargetSect
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--mono)', fontSize: 15, marginBottom: 12 }}>{heading}</h2>
+      <h2 className="section-title">{heading}</h2>
 
-      <form
-        onSubmit={handleCreate}
-        className="card"
-        style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}
-      >
-        <div>
-          <label htmlFor="tgt-name" style={fieldStyle}>Nome</label>
+      <form onSubmit={handleCreate} className="card form-grid">
+        <div className="field">
+          <label className="field-label" htmlFor="tgt-name">Nome</label>
           <input id="tgt-name" ref={nameRef} type="text" className="field-input" value={name}
             onChange={(e) => setName(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="tgt-value" style={fieldStyle}>Valor (R$)</label>
+        <div className="field">
+          <label className="field-label" htmlFor="tgt-value">Valor (R$)</label>
           <input id="tgt-value" type="text" className="field-input" value={targetValue}
             onChange={(e) => setTargetValue(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="tgt-date" style={fieldStyle}>Data alvo</label>
+        <div className="field">
+          <label className="field-label" htmlFor="tgt-date">Data alvo</label>
           <input id="tgt-date" type="date" className="field-input" value={dateValue}
             onChange={(e) => setDateValue(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="tgt-current" style={fieldStyle}>Valor já guardado (R$)</label>
+        <div className="field">
+          <label className="field-label" htmlFor="tgt-current">Valor já guardado (R$)</label>
           <input id="tgt-current" type="text" className="field-input" value={currentValue}
             onChange={(e) => setCurrentValue(e.target.value)} />
         </div>
         {showNotes && (
-          <div>
-            <label htmlFor="tgt-notes" style={fieldStyle}>Motivação</label>
+          <div className="field">
+            <label className="field-label" htmlFor="tgt-notes">Motivação</label>
             <input id="tgt-notes" type="text" className="field-input" value={notesValue}
               onChange={(e) => setNotesValue(e.target.value)} />
           </div>

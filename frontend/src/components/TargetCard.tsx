@@ -11,8 +11,6 @@ interface TargetCardProps {
   onDelete: (id: number) => void;
 }
 
-const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
-
 const ghostBtn = {
   background: 'none',
   border: 'none',
@@ -54,34 +52,26 @@ export function TargetCard({ target, showNotes, onAdd, onUpdate, onDelete }: Tar
   }
 
   return (
-    <div className="card" style={{ marginBottom: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+    <div className="card stack-sm">
+      <div className="dash-goal-head">
         <strong>{target.name}</strong>
         {p.complete && (
-          <span style={{ fontSize: 12, color: 'var(--cyan)', fontFamily: 'var(--mono)' }}>
+          <span className="mono" style={{ fontSize: 'var(--text-xs)', color: 'var(--accent)' }}>
             Concluída
           </span>
         )}
       </div>
 
-      <div style={{ fontFamily: 'var(--mono)', fontSize: 13, margin: '6px 0' }}>
+      <div className="mono" style={{ fontSize: 'var(--text-sm)' }}>
         {formatCentsBRL(target.currentCents)} de {formatCentsBRL(target.targetCents)}
       </div>
 
-      <div
-        style={{
-          height: 6,
-          background: 'var(--border)',
-          borderRadius: 3,
-          overflow: 'hidden',
-          marginBottom: 6,
-        }}
-      >
-        <div style={{ width: `${p.progressPct}%`, height: '100%', background: 'var(--cyan)' }} />
+      <div className="dash-goal-track">
+        <div className="dash-goal-fill" style={{ width: `${p.progressPct}%` }} />
       </div>
 
       {!p.complete && (
-        <div style={{ fontSize: 12.5, color: 'var(--text2)' }}>
+        <div className="subtle">
           Faltam {formatCentsBRL(p.remainingCents)}
           {p.suggestedMonthlyCents !== null &&
             ` — sugestão ${formatCentsBRL(p.suggestedMonthlyCents)}/mês`}
@@ -89,12 +79,10 @@ export function TargetCard({ target, showNotes, onAdd, onUpdate, onDelete }: Tar
       )}
 
       {showNotes && target.notes && (
-        <p style={{ fontSize: 12.5, color: 'var(--text3)', fontStyle: 'italic', margin: '6px 0 0' }}>
-          “{target.notes}”
-        </p>
+        <p className="subtle" style={{ fontStyle: 'italic' }}>“{target.notes}”</p>
       )}
 
-      <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+      <div className="row">
         <button
           type="button"
           onClick={() => setAdding((v) => !v)}
@@ -122,9 +110,9 @@ export function TargetCard({ target, showNotes, onAdd, onUpdate, onDelete }: Tar
       </div>
 
       {adding && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'flex-end' }}>
-          <div>
-            <label htmlFor={`add-${target.id}`} style={fieldStyle}>
+        <div className="form-grid">
+          <div className="field">
+            <label className="field-label" htmlFor={`add-${target.id}`}>
               Valor a adicionar em {target.name}
             </label>
             <input
@@ -147,32 +135,30 @@ export function TargetCard({ target, showNotes, onAdd, onUpdate, onDelete }: Tar
       )}
 
       {editing && (
-        <div
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10, alignItems: 'flex-end' }}
-        >
-          <div>
-            <label htmlFor={`edit-name-${target.id}`} style={fieldStyle}>Nome</label>
+        <div className="form-grid">
+          <div className="field">
+            <label className="field-label" htmlFor={`edit-name-${target.id}`}>Nome</label>
             <input id={`edit-name-${target.id}`} type="text" className="field-input"
               value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div>
-            <label htmlFor={`edit-target-${target.id}`} style={fieldStyle}>Valor (R$)</label>
+          <div className="field">
+            <label className="field-label" htmlFor={`edit-target-${target.id}`}>Valor (R$)</label>
             <input id={`edit-target-${target.id}`} type="text" className="field-input"
               value={targetValue} onChange={(e) => setTargetValue(e.target.value)} />
           </div>
-          <div>
-            <label htmlFor={`edit-current-${target.id}`} style={fieldStyle}>Valor atual (R$)</label>
+          <div className="field">
+            <label className="field-label" htmlFor={`edit-current-${target.id}`}>Valor atual (R$)</label>
             <input id={`edit-current-${target.id}`} type="text" className="field-input"
               value={currentValue} onChange={(e) => setCurrentValue(e.target.value)} />
           </div>
-          <div>
-            <label htmlFor={`edit-date-${target.id}`} style={fieldStyle}>Data alvo</label>
+          <div className="field">
+            <label className="field-label" htmlFor={`edit-date-${target.id}`}>Data alvo</label>
             <input id={`edit-date-${target.id}`} type="date" className="field-input"
               value={dateValue} onChange={(e) => setDateValue(e.target.value)} />
           </div>
           {showNotes && (
-            <div>
-              <label htmlFor={`edit-notes-${target.id}`} style={fieldStyle}>Motivação</label>
+            <div className="field">
+              <label className="field-label" htmlFor={`edit-notes-${target.id}`}>Motivação</label>
               <input id={`edit-notes-${target.id}`} type="text" className="field-input"
                 value={notesValue} onChange={(e) => setNotesValue(e.target.value)} />
             </div>

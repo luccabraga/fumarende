@@ -2,8 +2,6 @@ import { useEffect, useState, type FormEvent } from 'react';
 import * as api from '../lib/api.js';
 import { CATEGORIES } from '../lib/expenses.js';
 
-const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
-
 export function CategoryRulesSection() {
   const [rules, setRules] = useState<api.CategoryRule[]>([]);
   const [keyword, setKeyword] = useState('');
@@ -45,29 +43,15 @@ export function CategoryRulesSection() {
   }
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <h2 style={{ fontFamily: 'var(--mono)', fontSize: 16, marginBottom: 12 }}>
-        Regras de categoria
-      </h2>
+    <div className="stack-sm" style={{ marginTop: 'var(--space-5)' }}>
+      <h2 className="section-title">Regras de categoria</h2>
 
-      <div className="card" style={{ marginBottom: 12 }}>
-        {rules.length === 0 && (
-          <p style={{ color: 'var(--text3)' }}>Nenhuma regra ainda.</p>
-        )}
+      <div className="card">
+        {rules.length === 0 && <p className="subtle">Nenhuma regra ainda.</p>}
         {rules.map((r) => (
-          <div
-            key={r.id}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 12,
-              padding: '8px 0',
-              borderBottom: '1px solid var(--border)',
-              fontSize: 13,
-            }}
-          >
-            <span style={{ flex: 1, fontFamily: 'var(--mono)' }}>
-              {r.keyword} <span style={{ color: 'var(--text3)' }}>→</span> {r.category}
+          <div key={r.id} className="list-row">
+            <span style={{ flex: 1 }} className="mono">
+              {r.keyword} <span className="subtle">→</span> {r.category}
             </span>
             <button
               type="button"
@@ -88,13 +72,9 @@ export function CategoryRulesSection() {
         ))}
       </div>
 
-      <form
-        onSubmit={handleAdd}
-        className="card"
-        style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}
-      >
-        <div>
-          <label htmlFor="rule-keyword" style={fieldStyle}>Palavra-chave</label>
+      <form onSubmit={handleAdd} className="card form-grid">
+        <div className="field">
+          <label className="field-label" htmlFor="rule-keyword">Palavra-chave</label>
           <input
             id="rule-keyword"
             type="text"
@@ -103,8 +83,8 @@ export function CategoryRulesSection() {
             onChange={(e) => setKeyword(e.target.value)}
           />
         </div>
-        <div>
-          <label htmlFor="rule-category" style={fieldStyle}>Categoria da regra</label>
+        <div className="field">
+          <label className="field-label" htmlFor="rule-category">Categoria da regra</label>
           <select
             id="rule-category"
             className="field-input"
@@ -123,7 +103,7 @@ export function CategoryRulesSection() {
         </button>
       </form>
 
-      {error && <p className="error-text" style={{ marginTop: 10 }}>{error}</p>}
+      {error && <p className="error-text">{error}</p>}
     </div>
   );
 }

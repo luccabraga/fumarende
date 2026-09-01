@@ -8,8 +8,7 @@ function centsToInput(cents: number): string {
   return (cents / 100).toFixed(2).replace('.', ',');
 }
 
-const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
-const cellInput = { width: '100%', boxSizing: 'border-box' } as const;
+const cellInput = { width: '100%' } as const;
 
 const KIND_LABEL: Record<api.ImportLineKind, string> = {
   purchase: 'Compra',
@@ -165,13 +164,11 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
   }
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <h2 style={{ fontFamily: 'var(--mono)', fontSize: 16, marginBottom: 12 }}>
-        Importar extrato (PDF)
-      </h2>
+    <div className="stack-sm" style={{ marginTop: 'var(--space-5)' }}>
+      <h2 className="section-title">Importar extrato (PDF)</h2>
 
       <div className="card">
-        <label htmlFor="statement-file" style={fieldStyle}>
+        <label className="field-label" htmlFor="statement-file">
           Arquivo do extrato
         </label>
         <input
@@ -183,44 +180,40 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
         />
 
         {phase === 'reading' && (
-          <div style={{ marginTop: 10 }}>
+          <div style={{ marginTop: 'var(--space-3)' }}>
             <div className="progress-indeterminate" aria-hidden="true">
               <span />
             </div>
-            <p style={{ marginTop: 6, color: 'var(--text3)', fontSize: 13 }}>
+            <p className="subtle" style={{ marginTop: 'var(--space-2)' }}>
               Lendo o extrato com a IA — há {elapsed}s. A leitura costuma levar 20–40
               segundos, não feche a página.
             </p>
             <button
               type="button"
               className="btn btn-ghost btn-sm"
-              style={{ marginTop: 6 }}
+              style={{ marginTop: 'var(--space-2)' }}
               onClick={cancelReading}
             >
               Cancelar
             </button>
-            <span className="subtle" style={{ marginLeft: 8 }}>
+            <span className="subtle" style={{ marginLeft: 'var(--space-2)' }}>
               a leitura já iniciada não é reembolsada
             </span>
           </div>
         )}
 
-        {error && <p className="error-text" style={{ marginTop: 10 }}>{error}</p>}
+        {error && <p className="error-text" style={{ marginTop: 'var(--space-3)' }}>{error}</p>}
         {result && (
-          <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text2)' }}>{result}</p>
+          <p className="muted" style={{ marginTop: 'var(--space-3)' }}>{result}</p>
         )}
 
         {phase === 'review' && rows.length === 0 && (
-          <div style={{ marginTop: 14 }}>
-            <p style={{ fontSize: 13, color: 'var(--text2)' }}>
-              Não consegui ler nenhum lançamento deste PDF.
-            </p>
+          <div className="stack-sm" style={{ marginTop: 'var(--space-4)' }}>
+            <p className="muted">Não consegui ler nenhum lançamento deste PDF.</p>
             {warnings.length > 0 && (
-              <p style={{ fontSize: 12.5, color: 'var(--text3)', marginTop: 6 }}>
-                {warnings.join(' ')}
-              </p>
+              <p className="subtle">{warnings.join(' ')}</p>
             )}
-            <p style={{ fontSize: 12.5, color: 'var(--text3)', marginTop: 6 }}>
+            <p className="subtle">
               Tente exportar a fatura em outro formato (texto/PDF pesquisável, não digitalizado) e
               enviar de novo.
             </p>
@@ -228,16 +221,12 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
         )}
 
         {phase === 'review' && rows.length > 0 && (
-          <div style={{ marginTop: 14 }}>
-            {warnings.length > 0 && (
-              <p style={{ fontSize: 12.5, color: 'var(--text3)', marginBottom: 10 }}>
-                {warnings.join(' ')}
-              </p>
-            )}
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
+          <div className="stack-sm" style={{ marginTop: 'var(--space-4)' }}>
+            {warnings.length > 0 && <p className="subtle">{warnings.join(' ')}</p>}
+            <div className="table-scroll">
+              <table className="data-table">
                 <thead>
-                  <tr style={{ textAlign: 'left', color: 'var(--text3)' }}>
+                  <tr>
                     <th></th>
                     <th>Data</th>
                     <th>Descrição</th>
@@ -249,7 +238,7 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
                 </thead>
                 <tbody>
                   {rows.map((r, i) => (
-                    <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                    <tr key={i}>
                       <td>
                         <input
                           type="checkbox"
@@ -313,7 +302,7 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
                           <option value="nao-essencial">Não-essencial</option>
                         </select>
                       </td>
-                      <td style={{ color: 'var(--text3)', whiteSpace: 'nowrap' }}>
+                      <td className="subtle" style={{ whiteSpace: 'nowrap' }}>
                         {KIND_LABEL[r.kind]}
                         {r.duplicate && ' · possível duplicata'}
                       </td>
@@ -325,7 +314,6 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
             <button
               type="button"
               className="button-primary"
-              style={{ marginTop: 12 }}
               disabled={confirming || checkedCount === 0}
               onClick={confirm}
             >

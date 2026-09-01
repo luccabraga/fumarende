@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '../test-utils.js';
 import { DashboardPage } from './DashboardPage.js';
 import { MonthProvider } from '../context/MonthContext.js';
 import * as api from '../lib/api.js';
@@ -90,6 +90,20 @@ describe('DashboardPage', () => {
     renderPage();
     expect(await screen.findByText('boom')).toBeInTheDocument();
     expect(screen.queryByText('R$ 5.000,00')).not.toBeInTheDocument();
+  });
+
+  it('offers Recarregar after a failed load and re-fetches on click', async () => {
+    const spy = vi
+      .spyOn(api, 'getDashboard')
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(summary);
+    renderPage();
+
+    const retry = await screen.findByRole('button', { name: 'Recarregar' });
+    fireEvent.click(retry);
+
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('R$ 5.000,00')).toBeInTheDocument();
   });
 
   it('requests the dashboard for the stored month', async () => {

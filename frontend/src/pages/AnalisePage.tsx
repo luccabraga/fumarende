@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL } from '../lib/money.js';
 import { spendingBreakdown, projectSavings, scenarioCatalog, applyCuts } from '../lib/analysis.js';
@@ -6,42 +6,36 @@ import { BarBreakdown } from '../components/BarBreakdown.js';
 import { ConsultorIA } from '../components/ConsultorIA.js';
 import { AiUsageSection } from '../components/AiUsageSection.js';
 import { useMonth } from '../context/MonthContext.js';
+import { useResource } from '../lib/useResource.js';
+import { AsyncBoundary } from '../components/AsyncBoundary.js';
 
 const cardGap = { marginBottom: 24 } as const;
 const h2Style = { fontFamily: 'var(--mono)', fontSize: 15, marginBottom: 10 } as const;
 
 export function AnalisePage() {
   const { month } = useMonth();
-  const [income, setIncome] = useState<api.IncomeEntry[]>([]);
-  const [expenses, setExpenses] = useState<api.Expense[]>([]);
-  const [fund, setFund] = useState<api.EmergencyFundEntry[]>([]);
-  const [target, setTarget] = useState<api.MonthlyTarget | null>(null);
-  const [goalsSavedCents, setGoalsSavedCents] = useState(0);
+  const r = useResource(
+    () =>
+      Promise.all([
+        api.listIncome(),
+        api.listExpenses(),
+        api.listEmergencyFund(),
+        api.getMonthlyTarget(month),
+        api.goalsApi.list(),
+        api.projectsApi.list(),
+      ]),
+    [month],
+  );
+  const [income, expenses, fund, target, goals, projects] = r.data ?? [
+    [] as api.IncomeEntry[],
+    [] as api.Expense[],
+    [] as api.EmergencyFundEntry[],
+    null,
+    [] as api.Target[],
+    [] as api.Target[],
+  ];
+  const goalsSavedCents = [...goals, ...projects].reduce((s, t) => s + t.currentCents, 0);
   const [cuts, setCuts] = useState<Record<string, number>>({});
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const [inc, exp, ef, tgt, goals, projects] = await Promise.all([
-          api.listIncome(),
-          api.listExpenses(),
-          api.listEmergencyFund(),
-          api.getMonthlyTarget(month),
-          api.goalsApi.list(),
-          api.projectsApi.list(),
-        ]);
-        setIncome(inc);
-        setExpenses(exp);
-        setFund(ef);
-        setTarget(tgt);
-        setGoalsSavedCents([...goals, ...projects].reduce((s, t) => s + t.currentCents, 0));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar a análise');
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [month]);
 
   const breakdown = useMemo(() => spendingBreakdown(income, expenses), [income, expenses]);
   const reserveBalanceCents = useMemo(
@@ -76,10 +70,9 @@ export function AnalisePage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 20 }}>Análise</h1>
+      <h1 className="page-title">Análise</h1>
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-
+      <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload} skeletonRows={4}>
       <div className="card" style={cardGap}>
         <h2 style={h2Style}>Resumo</h2>
         <div style={{ fontSize: 13, lineHeight: 1.7 }}>
@@ -183,6 +176,8 @@ export function AnalisePage() {
           </>
         )}
       </div>
+
+      </AsyncBoundary>
 
       <ConsultorIA />
       <AiUsageSection />

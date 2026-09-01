@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL } from '../lib/money.js';
 import { BarBreakdown } from '../components/BarBreakdown.js';
 import { useMonth } from '../context/MonthContext.js';
+import { useResource } from '../lib/useResource.js';
+import { AsyncBoundary } from '../components/AsyncBoundary.js';
+import { useToast } from '../context/ToastContext.js';
 
 const ALERT_CLASS: Record<api.DashboardSummary['alerts'][number]['level'], string> = {
   info: 'muted',
@@ -39,30 +41,18 @@ function Delta({
 
 export function DashboardPage() {
   const { month } = useMonth();
-  const [summary, setSummary] = useState<api.DashboardSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  async function load() {
-    try {
-      setSummary(await api.getDashboard(month));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar o dashboard');
-    }
-  }
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [month]);
+  const { toast } = useToast();
+  const r = useResource(() => api.getDashboard(month), [month]);
+  const summary = r.data;
 
   async function toggleClose() {
     if (!summary) return;
     try {
       if (summary.monthlyClose.reviewed) await api.unmarkMonthReviewed(summary.month);
       else await api.markMonthReviewed(summary.month);
-      await load();
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
@@ -85,8 +75,7 @@ export function DashboardPage() {
     <div>
       <h1 className="page-title">Dashboard</h1>
 
-      {error && <p className="error-text">{error}</p>}
-
+      <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload} skeletonRows={6}>
       {summary && (
         <div className="stack">
           <p className="subtle">{summary.month}</p>
@@ -249,6 +238,7 @@ export function DashboardPage() {
           </div>
         </div>
       )}
+      </AsyncBoundary>
     </div>
   );
 }

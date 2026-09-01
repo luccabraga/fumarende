@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext.js';
+import { PageHeader } from '../components/PageHeader.js';
 
 export function LoginPage() {
   const { passwordSet, setup, login } = useAuth();
@@ -23,8 +24,8 @@ export function LoginPage() {
   }
 
   return (
-    <div className="card login-card">
-      <h1 className="page-title">{isSetupMode ? 'Criar senha' : 'fumarende'}</h1>
+    <div className="card login-card stack">
+      <PageHeader title={isSetupMode ? 'Criar senha' : 'fumarende'} />
       <form onSubmit={handleSubmit} className="stack-sm">
         <label className="field" htmlFor="password">
           <span className="field-label">Senha</span>

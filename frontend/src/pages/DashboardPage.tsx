@@ -4,6 +4,7 @@ import { BarBreakdown } from '../components/BarBreakdown.js';
 import { useMonth } from '../context/MonthContext.js';
 import { useResource } from '../lib/useResource.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { useToast } from '../context/ToastContext.js';
 
 const ALERT_CLASS: Record<api.DashboardSummary['alerts'][number]['level'], string> = {
@@ -72,8 +73,8 @@ export function DashboardPage() {
   };
 
   return (
-    <div>
-      <h1 className="page-title">Dashboard</h1>
+    <div className="page">
+      <PageHeader title="Dashboard" />
 
       <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload} skeletonRows={6}>
       {summary && (

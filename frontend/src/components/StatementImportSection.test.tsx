@@ -88,4 +88,25 @@ describe('StatementImportSection', () => {
     pickFile();
     expect(await screen.findByText(/Limite mensal de IA atingido/)).toBeInTheDocument();
   });
+
+  it('shows elapsed time and a Cancelar button while reading, and cancels', async () => {
+    vi.spyOn(api, 'importPreviewStatement').mockImplementation(
+      (_b, _f, signal) =>
+        new Promise((_res, rej) => {
+          signal?.addEventListener('abort', () =>
+            rej(new DOMException('aborted', 'AbortError')),
+          );
+        }),
+    );
+    render(<StatementImportSection onImported={() => {}} />);
+    pickFile();
+
+    expect(await screen.findByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
+    expect(screen.getByText(/há \d+s/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(await screen.findByText(/Leitura cancelada/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
+  });
 });

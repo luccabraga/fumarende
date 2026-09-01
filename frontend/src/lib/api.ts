@@ -197,10 +197,12 @@ export interface ImportConfirmRow {
 export function importPreviewStatement(
   dataBase64: string,
   filename?: string,
+  signal?: AbortSignal,
 ): Promise<{ rows: ImportPreviewRow[]; warnings: string[] }> {
   return request('/api/expenses/import-preview', {
     method: 'POST',
     body: JSON.stringify({ dataBase64, filename }),
+    signal,
   });
 }
 export function importConfirmExpenses(

@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import * as api from '../lib/api.js';
 import { parseCentsFromInput } from '../lib/money.js';
 import { CATEGORIES } from '../lib/expenses.js';
@@ -61,6 +61,23 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function stopTick() {
+    if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+  }
+
+  function cancelReading() {
+    abortRef.current?.abort();
+    stopTick();
+    setPhase('idle');
+    setResult('Leitura cancelada.');
+  }
 
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -68,9 +85,21 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
     setPhase('reading');
     setError(null);
     setResult(null);
+    setElapsed(0);
+
+    const started = Date.now();
+    stopTick();
+    tickRef.current = setInterval(
+      () => setElapsed(Math.round((Date.now() - started) / 1000)),
+      1000,
+    );
+
+    const ac = new AbortController();
+    abortRef.current = ac;
 
     const reader = new FileReader();
     reader.onerror = () => {
+      stopTick();
       setError('Não consegui ler o arquivo.');
       setPhase('idle');
     };
@@ -78,13 +107,16 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
       const s = String(reader.result);
       const base64 = s.includes(',') ? s.slice(s.indexOf(',') + 1) : s;
       api
-        .importPreviewStatement(base64, file.name)
+        .importPreviewStatement(base64, file.name, ac.signal)
         .then((preview) => {
+          stopTick();
           setRows(preview.rows.map(toEditable));
           setWarnings(preview.warnings);
           setPhase('review');
         })
         .catch((err) => {
+          if ((err as { name?: string }).name === 'AbortError') return;
+          stopTick();
           setError(mapError(err));
           setPhase('idle');
         });
@@ -151,9 +183,26 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
         />
 
         {phase === 'reading' && (
-          <p style={{ marginTop: 10, color: 'var(--text3)', fontSize: 13 }}>
-            Lendo o extrato com a IA… isso costuma levar 20–40 segundos, não feche a página.
-          </p>
+          <div style={{ marginTop: 10 }}>
+            <div className="progress-indeterminate" aria-hidden="true">
+              <span />
+            </div>
+            <p style={{ marginTop: 6, color: 'var(--text3)', fontSize: 13 }}>
+              Lendo o extrato com a IA — há {elapsed}s. A leitura costuma levar 20–40
+              segundos, não feche a página.
+            </p>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ marginTop: 6 }}
+              onClick={cancelReading}
+            >
+              Cancelar
+            </button>
+            <span className="subtle" style={{ marginLeft: 8 }}>
+              a leitura já iniciada não é reembolsada
+            </span>
+          </div>
         )}
 
         {error && <p className="error-text" style={{ marginTop: 10 }}>{error}</p>}

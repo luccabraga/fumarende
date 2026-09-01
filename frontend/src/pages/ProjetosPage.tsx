@@ -1,10 +1,11 @@
 import { projectsApi } from '../lib/api.js';
 import { TargetSection } from '../components/TargetSection.js';
+import { PageHeader } from '../components/PageHeader.js';
 
 export function ProjetosPage() {
   return (
-    <div>
-      <h1 className="page-title">Projetos Especiais</h1>
+    <div className="page">
+      <PageHeader title="Projetos Especiais" />
       <TargetSection
         api={projectsApi}
         showNotes

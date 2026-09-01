@@ -6,6 +6,7 @@ import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
 import { Field } from '../components/Field.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { useToast } from '../context/ToastContext.js';
 
 export function ReceitasPage() {
@@ -81,14 +82,10 @@ export function ReceitasPage() {
   }
 
   return (
-    <div>
-      <h1 className="page-title">Receitas</h1>
+    <div className="page">
+      <PageHeader title="Receitas" />
 
-      <form
-        onSubmit={handleSubmit}
-        className="card"
-        style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start' }}
-      >
+      <form onSubmit={handleSubmit} className="card form-grid">
         <Field label="Data" htmlFor="rec-date">
           <input
             id="rec-date"
@@ -138,7 +135,7 @@ export function ReceitasPage() {
             onChange={(e) => setSource(e.target.value)}
           />
         </Field>
-        <button type="submit" className="button-primary" style={{ marginTop: 20 }}>
+        <button type="submit" className="button-primary">
           Adicionar
         </button>
       </form>
@@ -149,18 +146,10 @@ export function ReceitasPage() {
             <EmptyState message="Nenhum lançamento ainda." />
           )}
           {(r.data ?? []).map((entry) => (
-            <div
-              key={entry.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '10px 0',
-                borderBottom: '1px solid var(--border)',
-              }}
-            >
+            <div key={entry.id} className="list-row">
               <span>{entry.description ?? '—'}</span>
-              <span style={{ color: 'var(--text2)' }}>{entry.date}</span>
-              <span style={{ fontFamily: 'var(--mono)' }}>
+              <span className="muted">{entry.date}</span>
+              <span className="mono">
                 {formatCentsBRL(entry.amountBrlCents)}
                 {entry.amountUsdCents !== null && ` (${formatCentsUSD(entry.amountUsdCents)})`}
               </span>

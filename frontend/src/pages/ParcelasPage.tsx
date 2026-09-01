@@ -5,6 +5,7 @@ import { useResource } from '../lib/useResource.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
 import { useToast } from '../context/ToastContext.js';
+import { PageHeader } from '../components/PageHeader.js';
 
 export function ParcelasPage() {
   const r = useResource(() => api.listExpenses(), []);
@@ -22,8 +23,8 @@ export function ParcelasPage() {
   const groups = groupInstallments(r.data ?? [], new Date().toISOString().slice(0, 10));
 
   return (
-    <div>
-      <h1 className="page-title">Parcelas</h1>
+    <div className="page">
+      <PageHeader title="Parcelas" />
 
       <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload}>
         <div className="card">
@@ -31,24 +32,15 @@ export function ParcelasPage() {
             <EmptyState message="Nenhuma compra parcelada." />
           )}
           {groups.map((g) => (
-            <div
-              key={g.groupId}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 12,
-                padding: '10px 0',
-                borderBottom: '1px solid var(--border)',
-              }}
-            >
+            <div key={g.groupId} className="list-row">
               <span style={{ flex: 1 }}>{g.description}</span>
-              <span style={{ color: 'var(--text2)', fontSize: 12.5 }}>
+              <span className="subtle">
                 parcela {g.paidCount}/{g.installmentTotal}
               </span>
-              <span style={{ fontFamily: 'var(--mono)' }}>
+              <span className="mono">
                 restante {formatCentsBRL(g.remainingCents)}
               </span>
-              <span style={{ fontFamily: 'var(--mono)', color: 'var(--text2)' }}>
+              <span className="mono muted">
                 total {formatCentsBRL(g.totalCents)}
               </span>
               <button

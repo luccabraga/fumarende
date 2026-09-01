@@ -63,7 +63,28 @@ describe('extractStatement', () => {
     );
     const out = await extractStatement(CFG, 'JVBERi0x', { fetchImpl: f });
     expect(out.rows).toHaveLength(1);
-    expect(out.warnings.join(' ')).toMatch(/2 linha/);
+    expect(out.warnings.join(' ')).toMatch(/2 de 3 linha/);
+  });
+
+  it('normalises DD/MM/YYYY dates and reais-as-float amounts', async () => {
+    const f = reply(
+      '[{"date":"03/08/2026","description":"UBER","amountCents":32.10,"kind":"purchase","installment":null},' +
+        '{"date":"5/8","description":"PADARIA","amountCents":"12,50","kind":"purchase","installment":null}]',
+    );
+    const out = await extractStatement(CFG, 'JVBERi0x', { fetchImpl: f, now: NOW });
+    expect(out.rows).toEqual([
+      { date: '2026-08-03', description: 'UBER', amountCents: 3210, kind: 'purchase', installment: null },
+      { date: '2026-08-05', description: 'PADARIA', amountCents: 1250, kind: 'purchase', installment: null },
+    ]);
+    expect(out.warnings).toEqual([]);
+  });
+
+  it('tolerates leading prose before the JSON array', async () => {
+    const f = reply(
+      'Aqui estão os lançamentos:\n[{"date":"2026-08-01","description":"X","amountCents":100,"kind":"purchase","installment":null}]',
+    );
+    const out = await extractStatement(CFG, 'JVBERi0x', { fetchImpl: f, now: NOW });
+    expect(out.rows).toHaveLength(1);
   });
 
   it('returns [] + a warning for a non-array reply', async () => {

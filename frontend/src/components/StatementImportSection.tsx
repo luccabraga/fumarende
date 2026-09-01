@@ -151,7 +151,9 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
         />
 
         {phase === 'reading' && (
-          <p style={{ marginTop: 10, color: 'var(--text3)', fontSize: 13 }}>Lendo o extrato…</p>
+          <p style={{ marginTop: 10, color: 'var(--text3)', fontSize: 13 }}>
+            Lendo o extrato com a IA… isso costuma levar 20–40 segundos, não feche a página.
+          </p>
         )}
 
         {error && <p className="error-text" style={{ marginTop: 10 }}>{error}</p>}
@@ -159,7 +161,24 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
           <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text2)' }}>{result}</p>
         )}
 
-        {phase === 'review' && (
+        {phase === 'review' && rows.length === 0 && (
+          <div style={{ marginTop: 14 }}>
+            <p style={{ fontSize: 13, color: 'var(--text2)' }}>
+              Não consegui ler nenhum lançamento deste PDF.
+            </p>
+            {warnings.length > 0 && (
+              <p style={{ fontSize: 12.5, color: 'var(--text3)', marginTop: 6 }}>
+                {warnings.join(' ')}
+              </p>
+            )}
+            <p style={{ fontSize: 12.5, color: 'var(--text3)', marginTop: 6 }}>
+              Tente exportar a fatura em outro formato (texto/PDF pesquisável, não digitalizado) e
+              enviar de novo.
+            </p>
+          </div>
+        )}
+
+        {phase === 'review' && rows.length > 0 && (
           <div style={{ marginTop: 14 }}>
             {warnings.length > 0 && (
               <p style={{ fontSize: 12.5, color: 'var(--text3)', marginBottom: 10 }}>

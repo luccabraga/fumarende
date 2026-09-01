@@ -6,9 +6,9 @@ import { useResource } from '../lib/useResource.js';
 import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { useToast } from '../context/ToastContext.js';
 
-const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 export function HistoricoDolarPage() {
@@ -94,24 +94,20 @@ export function HistoricoDolarPage() {
   }
 
   return (
-    <div>
-      <h1 className="page-title" style={{ marginBottom: 8 }}>Histórico Dólar</h1>
-      <p style={{ color: 'var(--text3)', fontSize: 12.5, marginBottom: 20 }}>
-        Como a cotação afeta seu salário em reais.
-      </p>
+    <div className="page">
+      <PageHeader
+        title="Histórico Dólar"
+        subtitle="Como a cotação afeta seu salário em reais."
+      />
 
-      <form
-        onSubmit={handleSubmit}
-        className="card"
-        style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}
-      >
-        <div>
-          <label htmlFor="dol-month" style={fieldStyle}>Mês</label>
+      <form onSubmit={handleSubmit} className="card form-grid">
+        <div className="field">
+          <label className="field-label" htmlFor="dol-month">Mês</label>
           <input id="dol-month" type="month" className="field-input" value={month}
             onChange={(e) => setMonth(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="dol-rate" style={fieldStyle}>Cotação</label>
+        <div className="field">
+          <label className="field-label" htmlFor="dol-rate">Cotação</label>
           <input id="dol-rate" type="text" className="field-input" value={rateInput}
             placeholder="5,12" aria-invalid={!!f.errors.rate} onBlur={validateRate}
             onChange={(e) => setRateInput(e.target.value)} />
@@ -119,8 +115,8 @@ export function HistoricoDolarPage() {
             <span className="field-error" role="alert">{f.errors.rate}</span>
           )}
         </div>
-        <div>
-          <label htmlFor="dol-salary" style={fieldStyle}>Salário no mês (US$)</label>
+        <div className="field">
+          <label className="field-label" htmlFor="dol-salary">Salário no mês (US$)</label>
           <input id="dol-salary" type="text" className="field-input" value={salaryInput}
             aria-invalid={!!f.errors.salary} onBlur={validateSalary}
             onChange={(e) => setSalaryInput(e.target.value)} />
@@ -132,18 +128,11 @@ export function HistoricoDolarPage() {
       </form>
 
       {stats.rows.length >= 2 && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <svg viewBox="0 0 320 80" preserveAspectRatio="none" style={{ width: '100%', height: 80 }}>
+        <div className="card">
+          <svg viewBox="0 0 320 80" preserveAspectRatio="none" className="chart-svg">
             <polyline points={chartPoints} fill="none" stroke="var(--cyan)" strokeWidth="2" />
           </svg>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 11,
-              color: 'var(--text3)',
-            }}
-          >
+          <div className="subtle" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>{stats.rows[0].month}</span>
             <span>{stats.rows[stats.rows.length - 1].month}</span>
           </div>
@@ -151,41 +140,37 @@ export function HistoricoDolarPage() {
       )}
 
       <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload}>
-      <div className="card" style={{ overflowX: 'auto' }}>
+      <div className="card table-scroll">
         {quotes.length === 0 ? (
           <EmptyState message="Nenhuma cotação registrada." />
         ) : (
-          <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
+          <table className="data-table">
             <thead>
-              <tr style={{ textAlign: 'left', color: 'var(--text3)' }}>
-                <th style={{ padding: '6px 8px' }}>Mês</th>
-                <th style={{ padding: '6px 8px' }}>Cotação</th>
-                <th style={{ padding: '6px 8px' }}>Salário (US$)</th>
-                <th style={{ padding: '6px 8px' }}>Salário (R$)</th>
-                <th style={{ padding: '6px 8px' }}>vs média</th>
-                <th style={{ padding: '6px 8px' }} />
+              <tr>
+                <th>Mês</th>
+                <th>Cotação</th>
+                <th>Salário (US$)</th>
+                <th>Salário (R$)</th>
+                <th>vs média</th>
+                <th />
               </tr>
             </thead>
             <tbody>
               {stats.rows.map((r) => (
-                <tr key={r.month} style={{ borderTop: '1px solid var(--border)' }}>
-                  <td style={{ padding: '6px 8px' }}>{r.month}</td>
-                  <td style={{ padding: '6px 8px', fontFamily: 'var(--mono)' }}>
-                    {r.rate.toFixed(4)}
-                  </td>
-                  <td style={{ padding: '6px 8px', fontFamily: 'var(--mono)' }}>
+                <tr key={r.month}>
+                  <td>{r.month}</td>
+                  <td className="mono">{r.rate.toFixed(4)}</td>
+                  <td className="mono">
                     {r.salaryUsdCents !== null ? formatCentsUSD(r.salaryUsdCents) : '—'}
                   </td>
-                  <td style={{ padding: '6px 8px', fontFamily: 'var(--mono)' }}>
+                  <td className="mono">
                     {r.salaryBrlCents !== null ? formatCentsBRL(r.salaryBrlCents) : '—'}
                   </td>
-                  <td
-                    style={{ padding: '6px 8px', fontFamily: 'var(--mono)', color: 'var(--text2)' }}
-                  >
+                  <td className="mono muted">
                     {r.vsAveragePct >= 0 ? '+' : ''}
                     {r.vsAveragePct.toFixed(2)}%
                   </td>
-                  <td style={{ padding: '6px 8px' }}>
+                  <td>
                     <button
                       type="button"
                       onClick={() => handleDelete(r.month)}

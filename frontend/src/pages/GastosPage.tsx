@@ -1,17 +1,23 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL, parseCentsFromInput } from '../lib/money.js';
 import { CATEGORIES, PAYMENT_METHODS } from '../lib/expenses.js';
 import { FixedExpensesSection } from '../components/FixedExpensesSection.js';
 import { CategoryRulesSection } from '../components/CategoryRulesSection.js';
 import { StatementImportSection } from '../components/StatementImportSection.js';
+import { useResource } from '../lib/useResource.js';
+import { AsyncBoundary } from '../components/AsyncBoundary.js';
+import { EmptyState } from '../components/EmptyState.js';
+import { useToast } from '../context/ToastContext.js';
 
 const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 const AUTO = '';
 
 export function GastosPage() {
   const todayISO = () => new Date().toISOString().slice(0, 10);
-  const [expenses, setExpenses] = useState<api.Expense[]>([]);
+  const expensesR = useResource(() => api.listExpenses(), []);
+  const expenses = expensesR.data ?? [];
+  const { toast } = useToast();
   const [date, setDate] = useState(todayISO);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -19,25 +25,14 @@ export function GastosPage() {
   const [type, setType] = useState<'essencial' | 'nao-essencial'>('essencial');
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
   const [installments, setInstallments] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [sweeping, setSweeping] = useState(false);
-  const [sweepMsg, setSweepMsg] = useState<string | null>(null);
-
-  async function refresh() {
-    setExpenses(await api.listExpenses());
-  }
-
-  useEffect(() => {
-    refresh();
-  }, []);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
 
     const amountCents = parseCentsFromInput(amount);
     if (Number.isNaN(amountCents) || amountCents <= 0) {
-      setError('Valor inválido');
+      toast('error', 'Valor inválido');
       return;
     }
 
@@ -45,7 +40,7 @@ export function GastosPage() {
     if (installments.trim() !== '') {
       const parsed = Number(installments);
       if (!Number.isInteger(parsed) || parsed < 1) {
-        setError('Número de parcelas inválido');
+        toast('error', 'Número de parcelas inválido');
         return;
       }
       installmentTotal = parsed;
@@ -67,41 +62,41 @@ export function GastosPage() {
       setAmount('');
       setInstallments('');
       setCategory(AUTO);
-      await refresh();
+      toast('success', 'Gasto adicionado');
+      expensesR.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   async function sweep() {
     setSweeping(true);
-    setSweepMsg(null);
     try {
-      const r = await api.categorizePending();
-      await refresh();
-      setSweepMsg(
-        `${r.updated} categorizados · ${r.stillPending} pendentes${
-          r.stoppedAtCap ? ' (limite de IA atingido)' : ''
+      const res = await api.categorizePending();
+      expensesR.reload();
+      toast(
+        'success',
+        `${res.updated} categorizados · ${res.stillPending} pendentes${
+          res.stoppedAtCap ? ' (limite de IA atingido)' : ''
         }`,
       );
     } catch {
-      setSweepMsg('Falha ao categorizar.');
+      toast('error', 'Falha ao categorizar.');
     } finally {
       setSweeping(false);
     }
   }
 
   async function handleDelete(entry: api.Expense) {
-    setError(null);
     try {
       if (entry.installmentGroupId) {
         await api.deleteExpenseGroup(entry.installmentGroupId);
       } else {
         await api.deleteExpense(entry.id);
       }
-      await refresh();
+      expensesR.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
@@ -113,7 +108,7 @@ export function GastosPage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 20 }}>Gastos</h1>
+      <h1 className="page-title">Gastos</h1>
 
       <form
         onSubmit={handleSubmit}
@@ -166,8 +161,6 @@ export function GastosPage() {
         <button type="submit" className="button-primary">+ Adicionar gasto</button>
       </form>
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-
       {expenses.length > 0 && (
         <div className="card" style={{ marginBottom: 20, fontSize: 13 }}>
           <div>Total: {formatCentsBRL(total)}</div>
@@ -181,14 +174,16 @@ export function GastosPage() {
           <button type="button" className="button-primary" disabled={sweeping} onClick={sweep}>
             {sweeping ? 'Categorizando…' : `Categorizar pendentes (${pendingCount})`}
           </button>
-          {sweepMsg && (
-            <span style={{ marginLeft: 10, fontSize: 12.5, color: 'var(--text3)' }}>{sweepMsg}</span>
-          )}
         </div>
       )}
 
+      <AsyncBoundary
+        loading={expensesR.loading}
+        error={expensesR.error}
+        onRetry={expensesR.reload}
+      >
       <div className="card" style={{ marginBottom: 32 }}>
-        {expenses.length === 0 && <p style={{ color: 'var(--text3)' }}>Nenhum gasto ainda.</p>}
+        {expenses.length === 0 && <EmptyState message="Nenhum gasto ainda." />}
         {expenses.map((e) => (
           <div
             key={e.id}
@@ -231,10 +226,11 @@ export function GastosPage() {
           </div>
         ))}
       </div>
+      </AsyncBoundary>
 
-      <FixedExpensesSection onApplied={refresh} />
+      <FixedExpensesSection onApplied={expensesR.reload} />
       <CategoryRulesSection />
-      <StatementImportSection onImported={refresh} />
+      <StatementImportSection onImported={expensesR.reload} />
     </div>
   );
 }

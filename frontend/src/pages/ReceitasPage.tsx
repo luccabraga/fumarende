@@ -1,32 +1,27 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL, formatCentsUSD, parseCentsFromInput } from '../lib/money.js';
+import { useResource } from '../lib/useResource.js';
+import { AsyncBoundary } from '../components/AsyncBoundary.js';
+import { EmptyState } from '../components/EmptyState.js';
+import { useToast } from '../context/ToastContext.js';
 
 export function ReceitasPage() {
   const todayISO = () => new Date().toISOString().slice(0, 10);
-  const [entries, setEntries] = useState<api.IncomeEntry[]>([]);
+  const r = useResource(() => api.listIncome(), []);
+  const { toast } = useToast();
   const [date, setDate] = useState(todayISO);
   const [amount, setAmount] = useState('');
   const [amountUsd, setAmountUsd] = useState('');
   const [description, setDescription] = useState('');
   const [source, setSource] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  async function refresh() {
-    setEntries(await api.listIncome());
-  }
-
-  useEffect(() => {
-    refresh();
-  }, []);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
 
     const amountBrlCents = parseCentsFromInput(amount);
     if (Number.isNaN(amountBrlCents) || amountBrlCents <= 0) {
-      setError('Valor inválido');
+      toast('error', 'Valor inválido');
       return;
     }
 
@@ -34,7 +29,7 @@ export function ReceitasPage() {
     if (amountUsd.trim() !== '') {
       const parsed = parseCentsFromInput(amountUsd);
       if (Number.isNaN(parsed) || parsed <= 0) {
-        setError('Valor em USD inválido');
+        toast('error', 'Valor em USD inválido');
         return;
       }
       amountUsdCents = parsed;
@@ -53,25 +48,25 @@ export function ReceitasPage() {
       setAmountUsd('');
       setDescription('');
       setSource('');
-      await refresh();
+      toast('success', 'Receita adicionada');
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   async function handleDelete(id: number) {
-    setError(null);
     try {
       await api.deleteIncome(id);
-      await refresh();
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   return (
     <div>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 20 }}>Receitas</h1>
+      <h1 className="page-title">Receitas</h1>
 
       <form onSubmit={handleSubmit} className="card" style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-end' }}>
         <div>
@@ -139,44 +134,46 @@ export function ReceitasPage() {
         </button>
       </form>
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-
-      <div className="card">
-        {entries.length === 0 && <p style={{ color: 'var(--text3)' }}>Nenhum lançamento ainda.</p>}
-        {entries.map((entry) => (
-          <div
-            key={entry.id}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: '10px 0',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            <span>{entry.description ?? '—'}</span>
-            <span style={{ color: 'var(--text2)' }}>{entry.date}</span>
-            <span style={{ fontFamily: 'var(--mono)' }}>
-              {formatCentsBRL(entry.amountBrlCents)}
-              {entry.amountUsdCents !== null && ` (${formatCentsUSD(entry.amountUsdCents)})`}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleDelete(entry.id)}
-              aria-label={`Excluir lançamento de ${entry.date}`}
+      <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload}>
+        <div className="card">
+          {(r.data ?? []).length === 0 && (
+            <EmptyState message="Nenhum lançamento ainda." />
+          )}
+          {(r.data ?? []).map((entry) => (
+            <div
+              key={entry.id}
               style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                fontSize: 12.5,
-                color: 'var(--text3)',
-                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px 0',
+                borderBottom: '1px solid var(--border)',
               }}
             >
-              Excluir
-            </button>
-          </div>
-        ))}
-      </div>
+              <span>{entry.description ?? '—'}</span>
+              <span style={{ color: 'var(--text2)' }}>{entry.date}</span>
+              <span style={{ fontFamily: 'var(--mono)' }}>
+                {formatCentsBRL(entry.amountBrlCents)}
+                {entry.amountUsdCents !== null && ` (${formatCentsUSD(entry.amountUsdCents)})`}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleDelete(entry.id)}
+                aria-label={`Excluir lançamento de ${entry.date}`}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: 12.5,
+                  color: 'var(--text3)',
+                  cursor: 'pointer',
+                }}
+              >
+                Excluir
+              </button>
+            </div>
+          ))}
+        </div>
+      </AsyncBoundary>
     </div>
   );
 }

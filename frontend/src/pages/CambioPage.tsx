@@ -1,7 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL, formatCentsUSD, parseCentsFromInput, parseRate } from '../lib/money.js';
 import { calcCambio } from '../lib/cambio.js';
+import { useResource } from '../lib/useResource.js';
+import { AsyncBoundary } from '../components/AsyncBoundary.js';
+import { EmptyState } from '../components/EmptyState.js';
+import { useToast } from '../context/ToastContext.js';
 
 const INSTITUTIONS = ['Banco Inter', 'Wise', 'Avenue', 'Nomad', 'Outro'];
 
@@ -9,7 +13,9 @@ const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 
 export function CambioPage() {
   const todayISO = () => new Date().toISOString().slice(0, 10);
-  const [contracts, setContracts] = useState<api.ExchangeContract[]>([]);
+  const r = useResource(() => api.listExchangeContracts(), []);
+  const contracts = r.data ?? [];
+  const { toast } = useToast();
   const [date, setDate] = useState(todayISO);
   const [institution, setInstitution] = useState(INSTITUTIONS[0]);
   const [operationType, setOperationType] = useState<'compra' | 'venda'>('compra');
@@ -20,15 +26,6 @@ export function CambioPage() {
   const [bankFee, setBankFee] = useState('0');
   const [sourcePdfRef, setSourcePdfRef] = useState('');
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  async function refresh() {
-    setContracts(await api.listExchangeContracts());
-  }
-
-  useEffect(() => {
-    refresh();
-  }, []);
 
   // Parsed form values, recomputed each render for the live preview.
   const amountUsdCents = parseCentsFromInput(amountUsd);
@@ -59,22 +56,21 @@ export function CambioPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
 
     if (Number.isNaN(amountUsdCents) || amountUsdCents <= 0) {
-      setError('Valor em USD inválido');
+      toast('error', 'Valor em USD inválido');
       return;
     }
     if (Number.isNaN(rate) || rate <= 0) {
-      setError('Taxa cambial inválida');
+      toast('error', 'Taxa cambial inválida');
       return;
     }
     if (ptaxInput.trim() !== '' && (ptax === null || Number.isNaN(ptax) || ptax <= 0)) {
-      setError('PTAX inválida');
+      toast('error', 'PTAX inválida');
       return;
     }
     if (Number.isNaN(iofCents) || Number.isNaN(bankFeeCents)) {
-      setError('IOF ou tarifa inválidos');
+      toast('error', 'IOF ou tarifa inválidos');
       return;
     }
 
@@ -99,19 +95,19 @@ export function CambioPage() {
       setBankFee('0');
       setSourcePdfRef('');
       setNotes('');
-      await refresh();
+      toast('success', 'Operação registrada');
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   async function handleDelete(id: number) {
-    setError(null);
     try {
       await api.deleteExchangeContract(id);
-      await refresh();
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
@@ -128,7 +124,7 @@ export function CambioPage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 8 }}>Câmbio</h1>
+      <h1 className="page-title" style={{ marginBottom: 8 }}>Câmbio</h1>
       <p style={{ color: 'var(--text3)', fontSize: 12.5, marginBottom: 20 }}>
         Registre a operação de conversão com o banco. A receita em USD entra em Receitas.
       </p>
@@ -211,8 +207,6 @@ export function CambioPage() {
         </div>
       )}
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-
       {contracts.length > 0 && (
         <div className="card" style={{ marginBottom: 20, fontSize: 13 }}>
           <div>Total convertido: {formatCentsUSD(totalUsdCents)}</div>
@@ -228,8 +222,9 @@ export function CambioPage() {
         </div>
       )}
 
+      <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload}>
       <div className="card">
-        {contracts.length === 0 && <p style={{ color: 'var(--text3)' }}>Nenhuma operação ainda.</p>}
+        {contracts.length === 0 && <EmptyState message="Nenhuma operação ainda." />}
         {contracts.map((c) => (
           <div
             key={c.id}
@@ -268,6 +263,7 @@ export function CambioPage() {
           </div>
         ))}
       </div>
+      </AsyncBoundary>
     </div>
   );
 }

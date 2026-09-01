@@ -6,11 +6,10 @@ import { useResource } from '../lib/useResource.js';
 import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { useToast } from '../context/ToastContext.js';
 
 const INSTITUTIONS = ['Banco Inter', 'Wise', 'Avenue', 'Nomad', 'Outro'];
-
-const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 
 export function CambioPage() {
   const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -138,39 +137,35 @@ export function CambioPage() {
   const avgSpreadPct = avgPtax > 0 ? ((avgPtax - avgVet) / avgPtax) * 100 : null;
 
   return (
-    <div>
-      <h1 className="page-title" style={{ marginBottom: 8 }}>Câmbio</h1>
-      <p style={{ color: 'var(--text3)', fontSize: 12.5, marginBottom: 20 }}>
-        Registre a operação de conversão com o banco. A receita em USD entra em Receitas.
-      </p>
+    <div className="page">
+      <PageHeader
+        title="Câmbio"
+        subtitle="Registre a operação de conversão com o banco. A receita em USD entra em Receitas."
+      />
 
-      <form
-        onSubmit={handleSubmit}
-        className="card"
-        style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}
-      >
-        <div>
-          <label htmlFor="cambio-date" style={fieldStyle}>Data</label>
+      <form onSubmit={handleSubmit} className="card form-grid">
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-date">Data</label>
           <input id="cambio-date" type="date" className="field-input" value={date}
             onChange={(e) => setDate(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="cambio-institution" style={fieldStyle}>Instituição</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-institution">Instituição</label>
           <select id="cambio-institution" className="field-input" value={institution}
             onChange={(e) => setInstitution(e.target.value)}>
             {INSTITUTIONS.map((name) => <option key={name} value={name}>{name}</option>)}
           </select>
         </div>
-        <div>
-          <label htmlFor="cambio-operation" style={fieldStyle}>Operação</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-operation">Operação</label>
           <select id="cambio-operation" className="field-input" value={operationType}
             onChange={(e) => setOperationType(e.target.value as 'compra' | 'venda')}>
             <option value="compra">Compra (recebo BRL)</option>
             <option value="venda">Venda (envio BRL)</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="cambio-amount-usd" style={fieldStyle}>Valor (US$)</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-amount-usd">Valor (US$)</label>
           <input id="cambio-amount-usd" type="text" className="field-input" value={amountUsd}
             aria-invalid={!!f.errors.amountUsd} onBlur={validateAmountUsd}
             onChange={(e) => setAmountUsd(e.target.value)} />
@@ -178,8 +173,8 @@ export function CambioPage() {
             <span className="field-error" role="alert">{f.errors.amountUsd}</span>
           )}
         </div>
-        <div>
-          <label htmlFor="cambio-rate" style={fieldStyle}>Taxa cambial</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-rate">Taxa cambial</label>
           <input id="cambio-rate" type="text" className="field-input" value={rateInput}
             placeholder="5,0994" aria-invalid={!!f.errors.rate} onBlur={validateRate}
             onChange={(e) => setRateInput(e.target.value)} />
@@ -187,8 +182,8 @@ export function CambioPage() {
             <span className="field-error" role="alert">{f.errors.rate}</span>
           )}
         </div>
-        <div>
-          <label htmlFor="cambio-ptax" style={fieldStyle}>PTAX (opcional)</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-ptax">PTAX (opcional)</label>
           <input id="cambio-ptax" type="text" className="field-input" value={ptaxInput}
             aria-invalid={!!f.errors.ptax} onBlur={validatePtax}
             onChange={(e) => setPtaxInput(e.target.value)} />
@@ -196,14 +191,14 @@ export function CambioPage() {
             <span className="field-error" role="alert">{f.errors.ptax}</span>
           )}
         </div>
-        <div>
-          <label htmlFor="cambio-iof" style={fieldStyle}>IOF (R$)</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-iof">IOF (R$)</label>
           <input id="cambio-iof" type="text" className="field-input" value={iof}
             aria-invalid={!!f.errors.fees} onBlur={validateFees}
             onChange={(e) => setIof(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="cambio-bank-fee" style={fieldStyle}>Tarifa (R$)</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-bank-fee">Tarifa (R$)</label>
           <input id="cambio-bank-fee" type="text" className="field-input" value={bankFee}
             aria-invalid={!!f.errors.fees} onBlur={validateFees}
             onChange={(e) => setBankFee(e.target.value)} />
@@ -211,13 +206,13 @@ export function CambioPage() {
             <span className="field-error" role="alert">{f.errors.fees}</span>
           )}
         </div>
-        <div>
-          <label htmlFor="cambio-ref" style={fieldStyle}>Nº comprovante / referência</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-ref">Nº comprovante / referência</label>
           <input id="cambio-ref" type="text" className="field-input" value={sourcePdfRef}
             onChange={(e) => setSourcePdfRef(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="cambio-notes" style={fieldStyle}>Observação</label>
+        <div className="field">
+          <label className="field-label" htmlFor="cambio-notes">Observação</label>
           <input id="cambio-notes" type="text" className="field-input" value={notes}
             onChange={(e) => setNotes(e.target.value)} />
         </div>
@@ -225,7 +220,7 @@ export function CambioPage() {
       </form>
 
       {preview && (
-        <div className="card" style={{ marginBottom: 20, fontFamily: 'var(--mono)', fontSize: 13 }}>
+        <div className="card data-list mono">
           <div>BRL bruto: {formatCentsBRL(preview.grossBrlCents)}</div>
           <div>IOF + tarifas: {formatCentsBRL(preview.totalFeesCents)}</div>
           <div>BRL líquido: {formatCentsBRL(preview.netBrlCents)}</div>
@@ -240,7 +235,7 @@ export function CambioPage() {
       )}
 
       {contracts.length > 0 && (
-        <div className="card" style={{ marginBottom: 20, fontSize: 13 }}>
+        <div className="card data-list">
           <div>Total convertido: {formatCentsUSD(totalUsdCents)}</div>
           <div>BRL líquido recebido: {formatCentsBRL(totalNetCents)}</div>
           <div>Total em taxas: {formatCentsBRL(totalFeesCents)}</div>
@@ -258,23 +253,14 @@ export function CambioPage() {
       <div className="card">
         {contracts.length === 0 && <EmptyState message="Nenhuma operação ainda." />}
         {contracts.map((c) => (
-          <div
-            key={c.id}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 12,
-              padding: '10px 0',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            <span style={{ color: 'var(--text2)' }}>{c.date}</span>
+          <div key={c.id} className="list-row">
+            <span className="muted">{c.date}</span>
             <span>{c.institution}</span>
-            <span style={{ color: 'var(--text3)', fontSize: 12 }}>{c.operationType}</span>
-            <span style={{ fontFamily: 'var(--mono)' }}>
+            <span className="subtle">{c.operationType}</span>
+            <span className="mono">
               {formatCentsUSD(c.amountUsdCents)} → {formatCentsBRL(c.netBrlCents)}
             </span>
-            <span style={{ fontFamily: 'var(--mono)', color: 'var(--text2)' }}>
+            <span className="mono muted">
               VET {(c.netBrlCents / c.amountUsdCents).toFixed(4)}
             </span>
             <button

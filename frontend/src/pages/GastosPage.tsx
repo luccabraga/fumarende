@@ -9,9 +9,9 @@ import { useResource } from '../lib/useResource.js';
 import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { useToast } from '../context/ToastContext.js';
 
-const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 const AUTO = '';
 
 export function GastosPage() {
@@ -122,26 +122,22 @@ export function GastosPage() {
   const pendingCount = expenses.filter((e) => e.category === '').length;
 
   return (
-    <div>
-      <h1 className="page-title">Gastos</h1>
+    <div className="page">
+      <PageHeader title="Gastos" />
 
-      <form
-        onSubmit={handleSubmit}
-        className="card"
-        style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}
-      >
-        <div>
-          <label htmlFor="gasto-date" style={fieldStyle}>Data</label>
+      <form onSubmit={handleSubmit} className="card form-grid">
+        <div className="field">
+          <label className="field-label" htmlFor="gasto-date">Data</label>
           <input id="gasto-date" type="date" className="field-input" value={date}
             onChange={(e) => setDate(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="gasto-description" style={fieldStyle}>Descrição</label>
+        <div className="field">
+          <label className="field-label" htmlFor="gasto-description">Descrição</label>
           <input id="gasto-description" type="text" className="field-input" value={description}
             onChange={(e) => setDescription(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="gasto-amount" style={fieldStyle}>Valor (R$)</label>
+        <div className="field">
+          <label className="field-label" htmlFor="gasto-amount">Valor (R$)</label>
           <input id="gasto-amount" type="text" className="field-input" value={amount}
             aria-invalid={!!f.errors.amount} onBlur={validateAmount}
             onChange={(e) => setAmount(e.target.value)} />
@@ -149,31 +145,31 @@ export function GastosPage() {
             <span className="field-error" role="alert">{f.errors.amount}</span>
           )}
         </div>
-        <div>
-          <label htmlFor="gasto-category" style={fieldStyle}>Categoria</label>
+        <div className="field">
+          <label className="field-label" htmlFor="gasto-category">Categoria</label>
           <select id="gasto-category" className="field-input" value={category}
             onChange={(e) => setCategory(e.target.value)}>
             <option value="">Automático (regras + IA)</option>
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <div>
-          <label htmlFor="gasto-type" style={fieldStyle}>Tipo</label>
+        <div className="field">
+          <label className="field-label" htmlFor="gasto-type">Tipo</label>
           <select id="gasto-type" className="field-input" value={type}
             onChange={(e) => setType(e.target.value as 'essencial' | 'nao-essencial')}>
             <option value="essencial">Essencial</option>
             <option value="nao-essencial">Não-essencial</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="gasto-payment" style={fieldStyle}>Forma de pagamento</label>
+        <div className="field">
+          <label className="field-label" htmlFor="gasto-payment">Forma de pagamento</label>
           <select id="gasto-payment" className="field-input" value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}>
             {PAYMENT_METHODS.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
-        <div>
-          <label htmlFor="gasto-installments" style={fieldStyle}>Parcelas</label>
+        <div className="field">
+          <label className="field-label" htmlFor="gasto-installments">Parcelas</label>
           <input id="gasto-installments" type="number" min="1" className="field-input"
             value={installments} aria-invalid={!!f.errors.installments}
             onBlur={validateInstallments}
@@ -186,7 +182,7 @@ export function GastosPage() {
       </form>
 
       {expenses.length > 0 && (
-        <div className="card" style={{ marginBottom: 20, fontSize: 13 }}>
+        <div className="card data-list">
           <div>Total: {formatCentsBRL(total)}</div>
           <div>Essencial: {formatCentsBRL(essencial)}</div>
           <div>Não-essencial: {formatCentsBRL(total - essencial)}</div>
@@ -194,7 +190,7 @@ export function GastosPage() {
       )}
 
       {pendingCount > 0 && (
-        <div style={{ marginBottom: 12 }}>
+        <div>
           <button type="button" className="button-primary" disabled={sweeping} onClick={sweep}>
             {sweeping ? 'Categorizando…' : `Categorizar pendentes (${pendingCount})`}
           </button>
@@ -206,32 +202,23 @@ export function GastosPage() {
         error={expensesR.error}
         onRetry={expensesR.reload}
       >
-      <div className="card" style={{ marginBottom: 32 }}>
+      <div className="card">
         {expenses.length === 0 && <EmptyState message="Nenhum gasto ainda." />}
         {expenses.map((e) => (
-          <div
-            key={e.id}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 12,
-              padding: '10px 0',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            <span style={{ color: 'var(--text2)' }}>{e.date}</span>
+          <div key={e.id} className="list-row">
+            <span className="muted">{e.date}</span>
             <span style={{ flex: 1 }}>
               {e.description}
               {e.installmentTotal !== null && ` (${e.installmentNumber}/${e.installmentTotal})`}
             </span>
-            <span style={{ color: 'var(--text3)', fontSize: 12 }}>
+            <span className="subtle">
               {e.category ? (
                 e.category
               ) : (
                 <span style={{ fontStyle: 'italic' }}>— sem categoria</span>
               )}
             </span>
-            <span style={{ fontFamily: 'var(--mono)' }}>{formatCentsBRL(e.amountCents)}</span>
+            <span className="mono">{formatCentsBRL(e.amountCents)}</span>
             <button
               type="button"
               onClick={() => handleDelete(e)}

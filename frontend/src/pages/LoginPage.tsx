@@ -23,32 +23,25 @@ export function LoginPage() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: 360, margin: '80px auto' }}>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 18, marginBottom: 16 }}>
-        {isSetupMode ? 'Criar senha' : 'fumarende'}
-      </h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="password" style={{ display: 'block', fontSize: 12.5, marginBottom: 6 }}>
-          Senha
+    <div className="card login-card">
+      <h1 className="page-title">{isSetupMode ? 'Criar senha' : 'fumarende'}</h1>
+      <form onSubmit={handleSubmit} className="stack-sm">
+        <label className="field" htmlFor="password">
+          <span className="field-label">Senha</span>
+          <input
+            id="password"
+            type="password"
+            className="field-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+          />
         </label>
-        <input
-          id="password"
-          type="password"
-          className="field-input"
-          style={{ width: '100%', marginBottom: 12 }}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-        />
-        <button type="submit" className="button-primary" style={{ width: '100%' }}>
+        <button type="submit" className="btn btn-primary login-submit">
           {isSetupMode ? 'Criar' : 'Entrar'}
         </button>
-        {error && (
-          <p className="error-text" style={{ marginTop: 10 }}>
-            {error}
-          </p>
-        )}
+        {error && <p className="error-text">{error}</p>}
       </form>
     </div>
   );

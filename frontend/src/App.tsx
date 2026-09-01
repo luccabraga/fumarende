@@ -15,6 +15,7 @@ import { BackupDadosPage } from './pages/BackupDadosPage.js';
 import { NavShell } from './components/NavShell.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
 import { MonthProvider } from './context/MonthContext.js';
+import { ThemeProvider } from './context/ThemeContext.js';
 
 function AppShell() {
   return (
@@ -57,8 +58,10 @@ function Router() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <Router />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

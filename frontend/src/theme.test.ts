@@ -55,6 +55,13 @@ describe('theme.css', () => {
       '.row',
       '.table-scroll',
       '.nav',
+      '.page',
+      '.page-header',
+      '.form-grid',
+      '.list-row',
+      '.data-list',
+      '.data-table',
+      '.chart-svg',
     ]) {
       expect(css).toContain(cls);
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '../test-utils.js';
 import { TargetSection } from './TargetSection.js';
 import type { TargetsClient, Target } from '../lib/api.js';
 

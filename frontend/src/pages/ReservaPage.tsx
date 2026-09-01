@@ -3,6 +3,10 @@ import * as api from '../lib/api.js';
 import { formatCentsBRL, parseCentsFromInput } from '../lib/money.js';
 import { essentialAverage, reserveTiers } from '../lib/reserva.js';
 import { useMonth } from '../context/MonthContext.js';
+import { useResource } from '../lib/useResource.js';
+import { AsyncBoundary } from '../components/AsyncBoundary.js';
+import { EmptyState } from '../components/EmptyState.js';
+import { useToast } from '../context/ToastContext.js';
 
 const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -16,9 +20,21 @@ const TIER_MESSAGE: Record<ReturnType<typeof reserveTiers>['tier'], string> = {
 
 export function ReservaPage() {
   const { month } = useMonth();
-  const [entries, setEntries] = useState<api.EmergencyFundEntry[]>([]);
-  const [expenses, setExpenses] = useState<api.Expense[]>([]);
-  const [target, setTarget] = useState<api.MonthlyTarget | null>(null);
+  const { toast } = useToast();
+  const r = useResource(
+    () =>
+      Promise.all([
+        api.listEmergencyFund(),
+        api.listExpenses(),
+        api.getMonthlyTarget(month),
+      ]),
+    [month],
+  );
+  const [entries, expenses, target] = r.data ?? [
+    [] as api.EmergencyFundEntry[],
+    [] as api.Expense[],
+    null,
+  ];
 
   const [depositDate, setDepositDate] = useState(today());
   const [depositAmount, setDepositAmount] = useState('');
@@ -32,26 +48,15 @@ export function ReservaPage() {
   const [pctInput, setPctInput] = useState('');
   const [fixedInput, setFixedInput] = useState('');
 
-  const [error, setError] = useState<string | null>(null);
-
-  async function refresh() {
-    const [fund, exp, tgt] = await Promise.all([
-      api.listEmergencyFund(),
-      api.listExpenses(),
-      api.getMonthlyTarget(month),
-    ]);
-    setEntries(fund);
-    setExpenses(exp);
-    setTarget(tgt);
-    setPctOrFixed(tgt.pctOrFixed === 'fixed' ? 'fixed' : 'pct');
-    setPctInput(tgt.pctValue !== null ? String(tgt.pctValue) : '');
-    setFixedInput(tgt.fixedValueCents !== null ? (tgt.fixedValueCents / 100).toFixed(2) : '');
-  }
-
+  // Sync the Meta Mensal form fields from the loaded target each time it (re)loads.
   useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [month]);
+    if (!target) return;
+    setPctOrFixed(target.pctOrFixed === 'fixed' ? 'fixed' : 'pct');
+    setPctInput(target.pctValue !== null ? String(target.pctValue) : '');
+    setFixedInput(
+      target.fixedValueCents !== null ? (target.fixedValueCents / 100).toFixed(2) : '',
+    );
+  }, [target]);
 
   const balance = useMemo(() => entries.reduce((s, e) => s + e.amountCents, 0), [entries]);
   const { averageCents } = useMemo(() => essentialAverage(expenses), [expenses]);
@@ -74,24 +79,23 @@ export function ReservaPage() {
     notes: string,
     reset: () => void,
   ) {
-    setError(null);
     const amountCents = parseCentsFromInput(rawAmount);
     if (Number.isNaN(amountCents) || amountCents <= 0) {
-      setError('Valor inválido');
+      toast('error', 'Valor inválido');
       return;
     }
     try {
       await api.createEmergencyFundEntry({ kind, date, amountCents, notes: notes || null });
       reset();
-      await refresh();
+      toast('success', kind === 'deposit' ? 'Depósito registrado' : 'Retirada registrada');
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   async function handleSaveTarget(event: FormEvent) {
     event.preventDefault();
-    setError(null);
     try {
       await api.updateMonthlyTarget(month, {
         pctOrFixed,
@@ -101,37 +105,35 @@ export function ReservaPage() {
             ? parseCentsFromInput(fixedInput)
             : null,
       });
-      await refresh();
+      toast('success', 'Meta do mês salva');
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   async function handleDelete(id: number) {
-    setError(null);
     try {
       await api.deleteEmergencyFundEntry(id);
-      await refresh();
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   return (
     <div>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 20 }}>
-        Reserva de emergência
-      </h1>
+      <h1 className="page-title">Reserva de emergência</h1>
 
-      <div className="card" style={{ marginBottom: 20, fontSize: 13 }}>
-        <div>Já guardado: {formatCentsBRL(balance)}</div>
-        <div>Meta 3 meses: {formatCentsBRL(tiers.target3Cents)}</div>
-        <div>Meta ideal 6 meses: {formatCentsBRL(tiers.target6Cents)}</div>
-        <div>Progresso: {tiers.progressPct.toFixed(0)}%</div>
-        <div style={{ marginTop: 8 }}>{TIER_MESSAGE[tiers.tier]}</div>
-      </div>
-
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+      {r.data && (
+        <div className="card" style={{ marginBottom: 20, fontSize: 13 }}>
+          <div>Já guardado: {formatCentsBRL(balance)}</div>
+          <div>Meta 3 meses: {formatCentsBRL(tiers.target3Cents)}</div>
+          <div>Meta ideal 6 meses: {formatCentsBRL(tiers.target6Cents)}</div>
+          <div>Progresso: {tiers.progressPct.toFixed(0)}%</div>
+          <div style={{ marginTop: 8 }}>{TIER_MESSAGE[tiers.tier]}</div>
+        </div>
+      )}
 
       <form
         onSubmit={(e) => {
@@ -232,8 +234,9 @@ export function ReservaPage() {
         </div>
       </form>
 
+      <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload}>
       <div className="card">
-        {entries.length === 0 && <p style={{ color: 'var(--text3)' }}>Nenhum lançamento ainda.</p>}
+        {entries.length === 0 && <EmptyState message="Nenhum lançamento ainda." />}
         {entries.map((e) => (
           <div
             key={e.id}
@@ -269,6 +272,7 @@ export function ReservaPage() {
           </div>
         ))}
       </div>
+      </AsyncBoundary>
     </div>
   );
 }

@@ -4,9 +4,7 @@ import { TargetSection } from '../components/TargetSection.js';
 export function ProjetosPage() {
   return (
     <div>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 20 }}>
-        Projetos Especiais
-      </h1>
+      <h1 className="page-title">Projetos Especiais</h1>
       <TargetSection
         api={projectsApi}
         showNotes

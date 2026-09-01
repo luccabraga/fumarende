@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '../test-utils.js';
 import { ProjetosPage } from './ProjetosPage.js';
 import * as api from '../lib/api.js';
 

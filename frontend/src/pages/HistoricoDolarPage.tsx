@@ -1,25 +1,22 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL, formatCentsUSD, parseCentsFromInput, parseRate } from '../lib/money.js';
 import { quoteStats } from '../lib/dollar.js';
+import { useResource } from '../lib/useResource.js';
+import { AsyncBoundary } from '../components/AsyncBoundary.js';
+import { EmptyState } from '../components/EmptyState.js';
+import { useToast } from '../context/ToastContext.js';
 
 const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 export function HistoricoDolarPage() {
-  const [quotes, setQuotes] = useState<api.DollarQuote[]>([]);
+  const r = useResource(() => api.listDollarQuotes(), []);
+  const quotes = r.data ?? [];
+  const { toast } = useToast();
   const [month, setMonth] = useState(currentMonth());
   const [rateInput, setRateInput] = useState('');
   const [salaryInput, setSalaryInput] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  async function refresh() {
-    setQuotes(await api.listDollarQuotes());
-  }
-
-  useEffect(() => {
-    refresh();
-  }, []);
 
   const stats = useMemo(() => quoteStats(quotes), [quotes]);
 
@@ -42,22 +39,21 @@ export function HistoricoDolarPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
 
     if (!month) {
-      setError('Informe o mês');
+      toast('error', 'Informe o mês');
       return;
     }
     const rate = parseRate(rateInput);
     if (Number.isNaN(rate) || rate <= 0) {
-      setError('Cotação inválida');
+      toast('error', 'Cotação inválida');
       return;
     }
     let salaryUsdCents: number | null = null;
     if (salaryInput.trim() !== '') {
       const parsed = parseCentsFromInput(salaryInput);
       if (Number.isNaN(parsed) || parsed < 0) {
-        setError('Salário inválido');
+        toast('error', 'Salário inválido');
         return;
       }
       salaryUsdCents = parsed;
@@ -67,25 +63,25 @@ export function HistoricoDolarPage() {
       await api.upsertDollarQuote(month, { rate, salaryUsdCents });
       setRateInput('');
       setSalaryInput('');
-      await refresh();
+      toast('success', 'Cotação registrada');
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   async function handleDelete(m: string) {
-    setError(null);
     try {
       await api.deleteDollarQuote(m);
-      await refresh();
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   return (
     <div>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 8 }}>Histórico Dólar</h1>
+      <h1 className="page-title" style={{ marginBottom: 8 }}>Histórico Dólar</h1>
       <p style={{ color: 'var(--text3)', fontSize: 12.5, marginBottom: 20 }}>
         Como a cotação afeta seu salário em reais.
       </p>
@@ -113,8 +109,6 @@ export function HistoricoDolarPage() {
         <button type="submit" className="button-primary">Registrar cotação</button>
       </form>
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-
       {stats.rows.length >= 2 && (
         <div className="card" style={{ marginBottom: 20 }}>
           <svg viewBox="0 0 320 80" preserveAspectRatio="none" style={{ width: '100%', height: 80 }}>
@@ -134,9 +128,10 @@ export function HistoricoDolarPage() {
         </div>
       )}
 
+      <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload}>
       <div className="card" style={{ overflowX: 'auto' }}>
         {quotes.length === 0 ? (
-          <p style={{ color: 'var(--text3)' }}>Nenhuma cotação registrada.</p>
+          <EmptyState message="Nenhuma cotação registrada." />
         ) : (
           <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
             <thead>
@@ -191,6 +186,7 @@ export function HistoricoDolarPage() {
           </table>
         )}
       </div>
+      </AsyncBoundary>
     </div>
   );
 }

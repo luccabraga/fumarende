@@ -1,7 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import type { TargetsClient, Target } from '../lib/api.js';
 import { parseCentsFromInput } from '../lib/money.js';
 import { TargetCard } from './TargetCard.js';
+import { useResource } from '../lib/useResource.js';
+import { AsyncBoundary } from './AsyncBoundary.js';
+import { EmptyState } from './EmptyState.js';
+import { useToast } from '../context/ToastContext.js';
 
 interface TargetSectionProps {
   api: TargetsClient;
@@ -13,33 +17,26 @@ interface TargetSectionProps {
 const fieldStyle = { display: 'block', fontSize: 12, marginBottom: 4 } as const;
 
 export function TargetSection({ api, showNotes, heading, emptyText }: TargetSectionProps) {
-  const [items, setItems] = useState<Target[]>([]);
+  const r = useResource(() => api.list(), [api]);
+  const items = r.data ?? [];
+  const { toast } = useToast();
+  const nameRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState('');
   const [targetValue, setTargetValue] = useState('');
   const [dateValue, setDateValue] = useState('');
   const [currentValue, setCurrentValue] = useState('');
   const [notesValue, setNotesValue] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  async function refresh() {
-    setItems(await api.list());
-  }
-
-  useEffect(() => {
-    refresh();
-  }, [api]);
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
-    setError(null);
     const targetCents = parseCentsFromInput(targetValue);
     if (name.trim() === '' || Number.isNaN(targetCents) || targetCents <= 0) {
-      setError('Informe um nome e um valor válido');
+      toast('error', 'Informe um nome e um valor válido');
       return;
     }
     const currentCents = currentValue.trim() === '' ? undefined : parseCentsFromInput(currentValue);
     if (currentCents !== undefined && (Number.isNaN(currentCents) || currentCents < 0)) {
-      setError('Valor já guardado inválido');
+      toast('error', 'Valor já guardado inválido');
       return;
     }
     try {
@@ -55,17 +52,20 @@ export function TargetSection({ api, showNotes, heading, emptyText }: TargetSect
       setDateValue('');
       setCurrentValue('');
       setNotesValue('');
-      await refresh();
+      toast('success', 'Criado');
+      r.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      toast('error', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   }
 
   function wrap<A extends unknown[]>(fn: (...a: A) => Promise<unknown>) {
     return (...a: A) => {
       fn(...a)
-        .then(refresh)
-        .catch((err) => setError(err instanceof Error ? err.message : 'Erro desconhecido'));
+        .then(() => r.reload())
+        .catch((err) =>
+          toast('error', err instanceof Error ? err.message : 'Erro desconhecido'),
+        );
     };
   }
 
@@ -80,7 +80,7 @@ export function TargetSection({ api, showNotes, heading, emptyText }: TargetSect
       >
         <div>
           <label htmlFor="tgt-name" style={fieldStyle}>Nome</label>
-          <input id="tgt-name" type="text" className="field-input" value={name}
+          <input id="tgt-name" ref={nameRef} type="text" className="field-input" value={name}
             onChange={(e) => setName(e.target.value)} />
         </div>
         <div>
@@ -108,22 +108,33 @@ export function TargetSection({ api, showNotes, heading, emptyText }: TargetSect
         <button type="submit" className="button-primary">Criar</button>
       </form>
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-
-      {items.length === 0 ? (
-        <p style={{ color: 'var(--text3)' }}>{emptyText}</p>
-      ) : (
-        items.map((t) => (
-          <TargetCard
-            key={t.id}
-            target={t}
-            showNotes={showNotes}
-            onAdd={wrap(api.addTo)}
-            onUpdate={wrap(api.update)}
-            onDelete={wrap(api.remove)}
+      <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload}>
+        {items.length === 0 ? (
+          <EmptyState
+            message={emptyText}
+            action={
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => nameRef.current?.focus()}
+              >
+                Criar a primeira
+              </button>
+            }
           />
-        ))
-      )}
+        ) : (
+          items.map((t) => (
+            <TargetCard
+              key={t.id}
+              target={t}
+              showNotes={showNotes}
+              onAdd={wrap(api.addTo)}
+              onUpdate={wrap(api.update)}
+              onDelete={wrap(api.remove)}
+            />
+          ))
+        )}
+      </AsyncBoundary>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '../test-utils.js';
 import { ReservaPage } from './ReservaPage.js';
 import { MonthProvider } from '../context/MonthContext.js';
 import * as api from '../lib/api.js';

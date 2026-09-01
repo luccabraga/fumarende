@@ -43,9 +43,17 @@ frontend. Runs as a launchd service at `http://localhost:4173`.
   (`.btn*`, `.field*`, `.page-title`, `.stack`, `.row`, …), and a
   responsive nav (top-bar + hamburger below ~800px). `NavShell`,
   `LoginPage`, and `DashboardPage` migrated to the classes as a proof.
-- **2.5.2** migrate the remaining ~17 files off inline styles — next.
-- **2.5.3** unified loading / empty / error / form-validation patterns.
+- **2.5.3 States & feedback** ✅ — a `useResource` hook + `<AsyncBoundary>`
+  give every page a pulsing skeleton and an error card with **Recarregar**;
+  a `ToastContext` shows success/failure toasts; `<EmptyState>` replaces the
+  ad-hoc "Nenhum…" lines; the five value-entry forms validate per-field on
+  blur (inline `field-error` + `aria-invalid`); the PDF import shows an
+  indeterminate bar, an elapsed-seconds counter, and a **Cancelar** that
+  aborts the client request.
+- **2.5.2** migrate the remaining files off inline styles + a page-header
+  component — next.
 - **2.5.4** accessibility audit.
+- **2.5.5** dashboard / análise grid pass.
 
 Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;
 without a key every AI route returns a clean "not configured" response

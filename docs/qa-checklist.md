@@ -3,8 +3,8 @@
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
 > the built server (throwaway DB, port 4199, no API key) and runs a
 > 133-assertion end-to-end pass over every module's API. Last run
-> 2026-09-01: **133/133 pass.** Unit + integration suites: **server 267,
-> frontend 139, all green.** Items below are marked `[x]` when the e2e
+> 2026-09-01: **133/133 pass.** Unit + integration suites: **server 269,
+> frontend 158, all green.** Items below are marked `[x]` when the e2e
 > run or a unit test verifies them; `[ ]` items are browser-visual
 > checks only a human can confirm.
 
@@ -402,3 +402,37 @@
       below ~800px the sidebar is a top bar + working hamburger and wide
       content scrolls; dark mode looks the same as before this slice;
       the 17 un-migrated pages render correctly in both themes.
+
+## States & feedback (Phase 2.5.3)
+
+- [x] `useResource` — loading -> resolved / rejected(message) / reload
+      re-runs / no setState after unmount (4 unit tests).
+- [x] `AsyncBoundary` — skeleton while loading, error card + working
+      Recarregar on failure, children when resolved (3 unit tests).
+      `Skeleton` renders N blocks and is `aria-hidden` (unit).
+      `EmptyState` shows message + optional action (unit).
+- [x] `ToastContext` — `toast()` renders in a `role="status"` region,
+      stacks a second, the dismiss button removes one, auto-dismiss
+      after 3.5s, `useToast` throws outside a provider (3 unit tests).
+- [x] `<Field>` — label association, inline `role="alert"` error, hint
+      (unit). `useFormErrors` set/clear/clearAll/hasErrors (unit).
+- [x] All 11 pages load through `useResource` + `AsyncBoundary`; their
+      existing behaviour tests pass with a `ToastProvider` wrap and the
+      first assertion switched to `findBy`. `DashboardPage` also has a
+      rejected-load -> Recarregar -> re-fetch test.
+- [x] The 5 validated forms (Receitas, Câmbio, Gastos, Reserva,
+      Histórico Dólar) validate per-field on blur (inline
+      `field-error` + `aria-invalid`) and show a success toast on save;
+      action failures are toasts, not inline strings (three-way split).
+- [x] PDF import shows an indeterminate bar + elapsed timer + Cancelar;
+      Cancelar aborts the client fetch (AbortController) and returns to
+      idle with "Leitura cancelada." (unit). `importPreviewStatement`
+      gained an optional `signal` arg — the only api.ts change.
+- [x] All new animations (skeleton pulse, toast slide-in, progress
+      slide) are disabled under `prefers-reduced-motion`.
+- [ ] Browser: every page shows pulsing skeleton blocks then content;
+      stop the server and reload -> an error card with a working
+      Recarregar; submit a form with a bad value -> inline message under
+      the field; a good submit -> a toast bottom-centre; the PDF import
+      shows a sliding bar + seconds counter + Cancelar that returns to
+      idle.

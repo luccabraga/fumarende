@@ -16,6 +16,7 @@ import { NavShell } from './components/NavShell.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
 import { MonthProvider } from './context/MonthContext.js';
 import { ThemeProvider } from './context/ThemeContext.js';
+import { ToastProvider } from './context/ToastContext.js';
 
 function AppShell() {
   return (
@@ -59,9 +60,11 @@ function Router() {
 export function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <Router />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <Router />
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

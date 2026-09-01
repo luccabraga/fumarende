@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL } from '../lib/money.js';
 
-const h2Style = { fontFamily: 'var(--mono)', fontSize: 16, marginBottom: 12 } as const;
-
 const ENDPOINT_LABEL: Record<string, string> = {
   'analysis:diagnostico': 'Diagnóstico',
   'analysis:poupanca': 'Poupança',
@@ -32,36 +30,27 @@ export function AiUsageSection() {
     formatCentsBRL(Math.round(usdCents * (usage?.usdBrlRate ?? 0)));
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <h2 style={h2Style}>Uso da IA</h2>
+    <div style={{ marginTop: 'var(--space-5)' }}>
+      <h2 className="section-title">Uso da IA</h2>
 
-      <div className="card" style={{ fontSize: 13 }}>
+      <div className="card stack-sm">
         {error && <p className="error-text">{error}</p>}
 
         {usage && (
           <>
-            <div style={{ marginBottom: 10 }}>
+            <div>
               Este mês: {brl(usage.monthToDateUsdCents)} / {brl(usage.capUsdCents)}
             </div>
 
             {usage.byEndpoint.length === 0 ? (
-              <p style={{ color: 'var(--text3)' }}>Nenhuma chamada este mês.</p>
+              <p className="subtle">Nenhuma chamada este mês.</p>
             ) : (
-              <div style={{ marginBottom: 10 }}>
+              <div>
                 {usage.byEndpoint.map((e) => (
-                  <div
-                    key={e.endpoint}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                      padding: '4px 0',
-                      borderBottom: '1px solid var(--border)',
-                    }}
-                  >
+                  <div key={e.endpoint} className="list-row" style={{ padding: 'var(--space-1) 0' }}>
                     <span>{label(e.endpoint)}</span>
-                    <span style={{ color: 'var(--text3)' }}>{e.calls} chamada(s)</span>
-                    <span style={{ fontFamily: 'var(--mono)' }}>{brl(e.costUsdCents)}</span>
+                    <span className="subtle">{e.calls} chamada(s)</span>
+                    <span className="mono">{brl(e.costUsdCents)}</span>
                   </div>
                 ))}
               </div>
@@ -83,14 +72,15 @@ export function AiUsageSection() {
             </button>
 
             {showLog && (
-              <div style={{ marginTop: 8, fontSize: 12 }}>
+              <div>
                 {usage.recent.length === 0 && (
-                  <p style={{ color: 'var(--text3)' }}>Nenhuma chamada ainda.</p>
+                  <p className="subtle">Nenhuma chamada ainda.</p>
                 )}
                 {usage.recent.map((c, i) => (
                   <div
                     key={i}
-                    style={{ padding: '4px 0', borderTop: '1px solid var(--border)', color: 'var(--text3)' }}
+                    className="subtle"
+                    style={{ padding: 'var(--space-1) 0', borderTop: '1px solid var(--border)' }}
                   >
                     {new Date(c.createdAt).toLocaleDateString('pt-BR')} · {label(c.endpoint)} ·{' '}
                     {c.model} · {c.inputTokens}+{c.outputTokens} tok · {brl(c.costUsdCents)} ·{' '}

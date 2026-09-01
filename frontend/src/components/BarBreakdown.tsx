@@ -7,37 +7,23 @@ interface BarBreakdownProps {
 
 export function BarBreakdown({ rows, emptyText }: BarBreakdownProps) {
   if (rows.length === 0) {
-    return <p style={{ color: 'var(--text3)' }}>{emptyText}</p>;
+    return <p className="subtle">{emptyText}</p>;
   }
   const max = Math.max(...rows.map((r) => r.cents), 0);
 
   return (
-    <div>
+    <div className="stack-sm">
       {rows.map((r) => (
-        <div key={r.label} style={{ marginBottom: 8 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 12.5,
-              marginBottom: 3,
-            }}
-          >
+        <div key={r.label}>
+          <div className="dash-goal-head">
             <span>{r.label}</span>
-            <span style={{ fontFamily: 'var(--mono)', color: 'var(--text2)' }}>
-              {formatCentsBRL(r.cents)}
-            </span>
+            <span className="mono muted">{formatCentsBRL(r.cents)}</span>
           </div>
-          <div
-            style={{ height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}
-          >
+          <div className="dash-goal-track">
             <div
               data-testid={`bar-${r.label}`}
-              style={{
-                width: `${max > 0 ? (r.cents / max) * 100 : 0}%`,
-                height: '100%',
-                background: 'var(--cyan)',
-              }}
+              className="dash-goal-fill"
+              style={{ width: `${max > 0 ? (r.cents / max) * 100 : 0}%` }}
             />
           </div>
         </div>

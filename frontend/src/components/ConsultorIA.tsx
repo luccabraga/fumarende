@@ -3,8 +3,6 @@ import * as api from '../lib/api.js';
 import { formatCentsBRL } from '../lib/money.js';
 import { Markdown } from '../lib/markdown.js';
 
-const h2Style = { fontFamily: 'var(--mono)', fontSize: 15, marginBottom: 10 } as const;
-
 const PRESETS: readonly [api.AiAnalysis['kind'], string][] = [
   ['diagnostico', 'Diagnóstico geral'],
   ['poupanca', 'Estou poupando o suficiente?'],
@@ -62,17 +60,17 @@ export function ConsultorIA() {
 
   return (
     <div className="card">
-      <h2 style={h2Style}>Consultor IA</h2>
+      <h2 className="section-title">Consultor IA</h2>
 
-      {loadError && <p className="error-text" style={{ marginBottom: 10 }}>{loadError}</p>}
+      {loadError && <p className="error-text">{loadError}</p>}
 
       {!configured && (
-        <p style={{ fontSize: 12.5, color: 'var(--text3)', fontStyle: 'italic', marginBottom: 10 }}>
+        <p className="subtle" style={{ fontStyle: 'italic', marginBottom: 'var(--space-3)' }}>
           Configure <code>ANTHROPIC_API_KEY</code> no servidor para habilitar.
         </p>
       )}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      <div className="row-sm">
         {PRESETS.map(([kind, label]) => (
           <button
             key={kind}
@@ -87,7 +85,7 @@ export function ConsultorIA() {
       </div>
 
       {status?.webSearch && (
-        <label style={{ display: 'block', marginTop: 8, fontSize: 12, color: 'var(--text3)' }}>
+        <label className="subtle" style={{ display: 'block', marginTop: 'var(--space-2)' }}>
           <input
             type="checkbox"
             aria-label="com contexto de mercado"
@@ -101,17 +99,17 @@ export function ConsultorIA() {
       )}
 
       {warn && (
-        <p style={{ fontSize: 12.5, color: 'var(--red, var(--text))', marginTop: 10 }}>{warn}</p>
+        <p className="error-text" style={{ marginTop: 'var(--space-3)' }}>{warn}</p>
       )}
 
       {latest && (
-        <div style={{ marginTop: 14, fontSize: 13 }}>
+        <div style={{ marginTop: 'var(--space-4)' }}>
           <Markdown source={latest.responseMd} />
         </div>
       )}
 
       {history.length > 0 && (
-        <div style={{ marginTop: 16 }}>
+        <div style={{ marginTop: 'var(--space-4)' }}>
           <button
             type="button"
             onClick={() => setShowHistory((v) => !v)}
@@ -127,17 +125,16 @@ export function ConsultorIA() {
             {showHistory ? '▾' : '▸'} Histórico ({history.length})
           </button>
           {showHistory && (
-            <div style={{ marginTop: 10 }}>
+            <div className="stack-sm" style={{ marginTop: 'var(--space-3)' }}>
               {history.map((h) => (
                 <div
                   key={h.id}
                   style={{
                     borderTop: '1px solid var(--border)',
-                    padding: '10px 0',
-                    fontSize: 12.5,
+                    paddingTop: 'var(--space-3)',
                   }}
                 >
-                  <div style={{ color: 'var(--text3)', marginBottom: 4 }}>
+                  <div className="subtle">
                     {KIND_LABEL[h.kind]} · {new Date(h.createdAt).toLocaleDateString('pt-BR')} ·{' '}
                     {formatCentsBRL(Math.round(h.costUsdCents * (status?.usdBrlRate ?? 0)))}
                   </div>

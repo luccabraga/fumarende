@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 import { useMonth } from '../context/MonthContext.js';
+import { useTheme } from '../context/ThemeContext.js';
 
 const NAV_ITEMS: { to: string; label: string }[] = [
   { to: '/', label: 'Dashboard' },
@@ -16,74 +18,95 @@ const NAV_ITEMS: { to: string; label: string }[] = [
   { to: '/backup', label: 'Backup & Dados' },
 ];
 
+const THEME_CHOICES: { value: 'system' | 'light' | 'dark'; label: string }[] = [
+  { value: 'system', label: 'Sistema' },
+  { value: 'light', label: 'Claro' },
+  { value: 'dark', label: 'Escuro' },
+];
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <div role="group" aria-label="Tema" className="theme-toggle">
+      {THEME_CHOICES.map((c) => (
+        <button
+          key={c.value}
+          type="button"
+          className="btn btn-sm btn-ghost"
+          aria-pressed={theme === c.value}
+          onClick={() => setTheme(c.value)}
+        >
+          {c.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function NavShell() {
   const { logout } = useAuth();
   const { month, setMonth, months } = useMonth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <nav
-        style={{
-          width: 224,
-          borderRight: '1px solid var(--border)',
-          padding: '24px 0',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div style={{ padding: '0 22px 22px', fontFamily: 'var(--mono)', fontSize: 19 }}>
-          fumarende
+    <div className="app">
+      <nav className={`nav${menuOpen ? ' nav--open' : ''}`}>
+        <div className="nav__brand">fumarende</div>
+
+        <div className="nav__topbar">
+          <span className="mono">fumarende</span>
+          <button
+            type="button"
+            className="btn btn-sm btn-ghost nav__hamburger"
+            aria-label="Menu"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            ☰
+          </button>
         </div>
-        <label
-          style={{ display: 'block', padding: '0 22px 14px', fontSize: 11, color: 'var(--text3)' }}
-        >
-          Mês
-          <select
-            aria-label="Mês"
-            className="field-input"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
+
+        <div className="nav__list">
+          <label className="field nav__month">
+            <span className="field-label">Mês</span>
+            <select
+              aria-label="Mês"
+              className="field-input"
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
+            >
+              {months.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <ThemeToggle />
+
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className={({ isActive }) => `nav__link${isActive ? ' nav__link--active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+
+          <button
+            type="button"
+            className="btn btn-sm btn-ghost nav__signout"
+            onClick={() => logout()}
           >
-            {months.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </label>
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            style={({ isActive }) => ({
-              padding: '9px 22px',
-              fontSize: 13,
-              color: isActive ? 'var(--text)' : 'var(--text2)',
-              borderLeft: isActive ? '2px solid var(--cyan)' : '2px solid transparent',
-              textDecoration: 'none',
-            })}
-          >
-            {item.label}
-          </NavLink>
-        ))}
-        <button
-          onClick={() => logout()}
-          style={{
-            marginTop: 'auto',
-            marginLeft: 22,
-            background: 'none',
-            border: 'none',
-            color: 'var(--text3)',
-            cursor: 'pointer',
-            textAlign: 'left',
-          }}
-        >
-          Sair
-        </button>
+            Sair
+          </button>
+        </div>
       </nav>
-      <main style={{ flex: 1, padding: '32px 40px' }}>
+
+      <main className="main">
         <Outlet />
       </main>
     </div>

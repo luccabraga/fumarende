@@ -64,6 +64,7 @@ export async function callClaude(
 
   const json = (await res.json()) as {
     content?: { type: string; text?: string }[];
+    stop_reason?: string;
     usage?: {
       input_tokens?: number;
       output_tokens?: number;
@@ -74,6 +75,14 @@ export async function callClaude(
     .filter((c) => c.type === 'text' && typeof c.text === 'string')
     .map((c) => c.text)
     .join('');
+  if (text === '') {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[callClaude] empty text — stop_reason=${json.stop_reason} ` +
+        `content=[${(json.content ?? []).map((c) => c.type).join(',')}] ` +
+        `out_tokens=${json.usage?.output_tokens}`,
+    );
+  }
   return {
     text,
     inputTokens: json.usage?.input_tokens ?? 0,

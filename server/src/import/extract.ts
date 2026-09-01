@@ -26,6 +26,8 @@ const KINDS: LineKind[] = ['purchase', 'payment', 'fee', 'fx'];
 
 const SYSTEM =
   'Você extrai os lançamentos de uma fatura de cartão de crédito brasileira. ' +
+  'Comece a resposta imediatamente com [ e termine com ]. NÃO escreva nenhum texto, ' +
+  'explicação ou raciocínio antes ou depois do array. ' +
   'Responda APENAS com um array JSON minificado. Cada item: ' +
   '{"date":"YYYY-MM-DD","description":string,"amountCents":inteiro positivo,' +
   '"kind":"purchase"|"payment"|"fee"|"fx","installment":{"n":int,"total":int}|null}. ' +
@@ -171,7 +173,11 @@ export async function extractStatement(
 
   let res;
   try {
-    res = await callClaude(cfg, { system: SYSTEM, user: userBlocks, maxTokens: 4000 }, deps.fetchImpl);
+    res = await callClaude(
+      cfg,
+      { system: SYSTEM, user: userBlocks, maxTokens: 12000 },
+      deps.fetchImpl,
+    );
   } catch (err) {
     if (deps.db && err instanceof ClaudeUpstreamError) {
       deps.db

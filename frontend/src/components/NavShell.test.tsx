@@ -54,18 +54,21 @@ describe('NavShell', () => {
     expect(localStorage.getItem('fumarende.month')).toBe('2026-06');
   });
 
-  it('has a theme control that persists a choice, sets data-theme, and marks the active button', async () => {
+  it('has a Claro/Escuro control that persists a choice, sets data-theme, and marks the active button', async () => {
     renderShell();
     const escuro = await screen.findByRole('button', { name: 'Escuro' });
-    const sistema = screen.getByRole('button', { name: 'Sistema' });
-    expect(sistema).toHaveAttribute('aria-pressed', 'true');
+    const claro = screen.getByRole('button', { name: 'Claro' });
+    expect(screen.queryByRole('button', { name: 'Sistema' })).not.toBeInTheDocument();
+
+    fireEvent.click(claro);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(localStorage.getItem('fumarende.theme')).toBe('light');
+    expect(claro).toHaveAttribute('aria-pressed', 'true');
     expect(escuro).toHaveAttribute('aria-pressed', 'false');
 
     fireEvent.click(escuro);
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    expect(localStorage.getItem('fumarende.theme')).toBe('dark');
     expect(escuro).toHaveAttribute('aria-pressed', 'true');
-    expect(sistema).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('toggles the mobile nav panel with the hamburger', async () => {

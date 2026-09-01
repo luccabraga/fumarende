@@ -18,8 +18,7 @@ const NAV_ITEMS: { to: string; label: string }[] = [
   { to: '/backup', label: 'Backup & Dados' },
 ];
 
-const THEME_CHOICES: { value: 'system' | 'light' | 'dark'; label: string }[] = [
-  { value: 'system', label: 'Sistema' },
+const THEME_CHOICES: { value: 'light' | 'dark'; label: string }[] = [
   { value: 'light', label: 'Claro' },
   { value: 'dark', label: 'Escuro' },
 ];

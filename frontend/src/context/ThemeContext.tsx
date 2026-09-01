@@ -8,23 +8,33 @@ import {
   type ReactNode,
 } from 'react';
 
-type ThemeChoice = 'system' | 'light' | 'dark';
+type ThemeChoice = 'light' | 'dark';
 const STORAGE_KEY = 'fumarende.theme';
-const CHOICES: ThemeChoice[] = ['system', 'light', 'dark'];
 
-function readStored(): ThemeChoice {
+function systemPrefersDark(): boolean {
   try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    return CHOICES.includes(v as ThemeChoice) ? (v as ThemeChoice) : 'system';
+    return (
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    );
   } catch {
-    return 'system';
+    return true; // fumarende is dark-first
   }
 }
 
+function readInitial(): ThemeChoice {
+  try {
+    const v = localStorage.getItem(STORAGE_KEY);
+    if (v === 'light' || v === 'dark') return v;
+  } catch {
+    /* storage unavailable */
+  }
+  return systemPrefersDark() ? 'dark' : 'light';
+}
+
 function applyAttr(choice: ThemeChoice) {
-  const el = document.documentElement;
-  if (choice === 'system') el.removeAttribute('data-theme');
-  else el.setAttribute('data-theme', choice);
+  document.documentElement.setAttribute('data-theme', choice);
 }
 
 interface ThemeContextValue {
@@ -35,7 +45,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeChoice>(() => readStored());
+  const [theme, setThemeState] = useState<ThemeChoice>(() => readInitial());
 
   useEffect(() => {
     applyAttr(theme);

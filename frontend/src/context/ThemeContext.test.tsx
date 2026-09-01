@@ -7,9 +7,8 @@ function Probe() {
   return (
     <div>
       <span data-testid="theme">{theme}</span>
-      <button onClick={() => setTheme('dark')}>dark</button>
-      <button onClick={() => setTheme('light')}>light</button>
-      <button onClick={() => setTheme('system')}>system</button>
+      <button onClick={() => setTheme('dark')}>set dark</button>
+      <button onClick={() => setTheme('light')}>set light</button>
     </div>
   );
 }
@@ -24,17 +23,17 @@ afterEach(() => {
 });
 
 describe('ThemeContext', () => {
-  it('defaults to system with nothing stored and no attribute', () => {
+  it('defaults from the OS preference (light in jsdom, matchMedia → no match) and sets the attribute', () => {
     render(
       <ThemeProvider>
         <Probe />
       </ThemeProvider>,
     );
-    expect(screen.getByTestId('theme').textContent).toBe('system');
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+    expect(screen.getByTestId('theme').textContent).toBe('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
 
-  it('honours a stored choice and sets the attribute', () => {
+  it('honours a stored choice', () => {
     localStorage.setItem('fumarende.theme', 'dark');
     render(
       <ThemeProvider>
@@ -45,28 +44,36 @@ describe('ThemeContext', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
   });
 
-  it('setTheme persists, sets the attribute, and system removes it', () => {
+  it('setTheme persists and swaps the attribute', () => {
     render(
       <ThemeProvider>
         <Probe />
       </ThemeProvider>,
     );
-    fireEvent.click(screen.getByText('light'));
+    fireEvent.click(screen.getByRole('button', { name: 'set dark' }));
+    expect(localStorage.getItem('fumarende.theme')).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+
+    fireEvent.click(screen.getByRole('button', { name: 'set light' }));
     expect(localStorage.getItem('fumarende.theme')).toBe('light');
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-
-    fireEvent.click(screen.getByText('system'));
-    expect(localStorage.getItem('fumarende.theme')).toBe('system');
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
   });
 
-  it('falls back to system on a tampered value', () => {
+  it('falls back to the OS default on a tampered stored value', () => {
     localStorage.setItem('fumarende.theme', 'neon');
     render(
       <ThemeProvider>
         <Probe />
       </ThemeProvider>,
     );
-    expect(screen.getByTestId('theme').textContent).toBe('system');
+    expect(screen.getByTestId('theme').textContent).toBe('light');
+  });
+
+  it('useTheme throws outside a provider', () => {
+    function Bare() {
+      useTheme();
+      return null;
+    }
+    expect(() => render(<Bare />)).toThrow(/ThemeProvider/);
   });
 });

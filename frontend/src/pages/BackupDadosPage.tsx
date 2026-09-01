@@ -3,11 +3,10 @@ import * as api from '../lib/api.js';
 import { useResource } from '../lib/useResource.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { useToast } from '../context/ToastContext.js';
 
 const CONFIRM_PHRASE = 'APAGAR TUDO';
-const cardGap = { marginBottom: 24 } as const;
-const h2Style = { fontFamily: 'var(--mono)', fontSize: 15, marginBottom: 10 } as const;
 
 export function BackupDadosPage() {
   const { toast } = useToast();
@@ -77,14 +76,14 @@ export function BackupDadosPage() {
   }
 
   return (
-    <div>
-      <h1 className="page-title">Backup &amp; Dados</h1>
+    <div className="page">
+      <PageHeader title="Backup & Dados" />
 
       <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload}>
-        <div className="card" style={cardGap}>
-          <h2 style={h2Style}>Diagnóstico</h2>
+        <div className="card">
+          <h2 className="section-title">Diagnóstico</h2>
           {diag && (
-            <div style={{ fontSize: 12.5, lineHeight: 1.7 }}>
+            <div className="data-list">
               {Object.entries(diag.rowCounts).map(([t, n]) => (
                 <div key={t}>Linhas — {t}: {n}</div>
               ))}
@@ -100,21 +99,16 @@ export function BackupDadosPage() {
         </div>
       </AsyncBoundary>
 
-      <div className="card" style={cardGap}>
-        <h2 style={h2Style}>Exportar</h2>
-        <a
-          href={api.EXPORT_URL}
-          download
-          className="button-primary"
-          style={{ display: 'inline-block', textDecoration: 'none' }}
-        >
+      <div className="card">
+        <h2 className="section-title">Exportar</h2>
+        <a href={api.EXPORT_URL} download className="btn btn-primary">
           Baixar snapshot (.json)
         </a>
       </div>
 
-      <div className="card" style={cardGap}>
-        <h2 style={h2Style}>Importar</h2>
-        <p style={{ fontSize: 12.5, color: 'var(--text3)', marginBottom: 8 }}>
+      <div className="card stack-sm">
+        <h2 className="section-title">Importar</h2>
+        <p className="subtle">
           Substitui todos os dados atuais. Um backup do banco é feito antes.
         </p>
         <input
@@ -123,9 +117,9 @@ export function BackupDadosPage() {
           accept="application/json,.json"
           aria-label="Arquivo de importação"
           onChange={(e) => setHasFile((e.target.files?.length ?? 0) > 0)}
-          style={{ display: 'block', marginBottom: 8 }}
+          style={{ display: 'block' }}
         />
-        <label style={{ display: 'block', fontSize: 12.5, marginBottom: 8 }}>
+        <label className="row-sm">
           <input
             type="checkbox"
             checked={importAck}
@@ -143,9 +137,9 @@ export function BackupDadosPage() {
         </button>
       </div>
 
-      <div className="card" style={cardGap}>
-        <h2 style={h2Style}>Zona de perigo</h2>
-        <p style={{ fontSize: 12.5, color: 'var(--text3)', marginBottom: 8 }}>
+      <div className="card stack-sm">
+        <h2 className="section-title">Zona de perigo</h2>
+        <p className="subtle">
           Digite <strong>{CONFIRM_PHRASE}</strong> para habilitar. Ambas as ações fazem um backup
           antes.
         </p>
@@ -155,9 +149,9 @@ export function BackupDadosPage() {
           className="field-input"
           value={phrase}
           onChange={(e) => setPhrase(e.target.value)}
-          style={{ display: 'block', marginBottom: 10 }}
+          style={{ display: 'block' }}
         />
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div className="row">
           <button
             type="button"
             className="button-primary"
@@ -178,20 +172,15 @@ export function BackupDadosPage() {
       </div>
 
       <div className="card">
-        <h2 style={h2Style}>Fechamento mensal</h2>
+        <h2 className="section-title">Fechamento mensal</h2>
         {months.length === 0 ? (
           <EmptyState message="Nenhum mês com dados ainda." />
         ) : (
           months.map((row) => (
             <div
               key={row.month}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '6px 0',
-                borderBottom: '1px solid var(--border)',
-              }}
+              className="list-row"
+              style={{ alignItems: 'center', justifyContent: 'flex-start' }}
             >
               <input
                 type="checkbox"
@@ -199,9 +188,9 @@ export function BackupDadosPage() {
                 aria-label={`Revisado ${row.month}`}
                 onChange={() => toggleMonth(row)}
               />
-              <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5 }}>{row.month}</span>
+              <span className="mono">{row.month}</span>
               {row.reviewed && row.reviewedAt && (
-                <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+                <span className="subtle">
                   revisado em {new Date(row.reviewedAt).toLocaleDateString('pt-BR')}
                 </span>
               )}

@@ -8,9 +8,7 @@ import { AiUsageSection } from '../components/AiUsageSection.js';
 import { useMonth } from '../context/MonthContext.js';
 import { useResource } from '../lib/useResource.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
-
-const cardGap = { marginBottom: 24 } as const;
-const h2Style = { fontFamily: 'var(--mono)', fontSize: 15, marginBottom: 10 } as const;
+import { PageHeader } from '../components/PageHeader.js';
 
 export function AnalisePage() {
   const { month } = useMonth();
@@ -69,13 +67,13 @@ export function AnalisePage() {
   }, [projection]);
 
   return (
-    <div>
-      <h1 className="page-title">Análise</h1>
+    <div className="page">
+      <PageHeader title="Análise" />
 
       <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload} skeletonRows={4}>
-      <div className="card" style={cardGap}>
-        <h2 style={h2Style}>Resumo</h2>
-        <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+      <div className="card">
+        <h2 className="section-title">Resumo</h2>
+        <div className="data-list">
           <div>Receitas: {formatCentsBRL(breakdown.totalIncomeCents)}</div>
           <div>Gastos: {formatCentsBRL(breakdown.totalExpensesCents)}</div>
           <div style={{ color: breakdown.balanceCents < 0 ? 'var(--text3)' : undefined }}>
@@ -86,73 +84,46 @@ export function AnalisePage() {
         </div>
       </div>
 
-      <div className="card" style={cardGap}>
-        <h2 style={h2Style}>Gastos por categoria</h2>
+      <div className="card">
+        <h2 className="section-title">Gastos por categoria</h2>
         <BarBreakdown
           rows={breakdown.byCategory.map((c) => ({ label: c.category, cents: c.cents }))}
           emptyText="Nenhum gasto registrado."
         />
       </div>
 
-      <div className="card" style={cardGap}>
-        <h2 style={h2Style}>Projeção 12 meses</h2>
+      <div className="card">
+        <h2 className="section-title">Projeção 12 meses</h2>
         {target && target.targetCents === 0 ? (
-          <p style={{ color: 'var(--text3)', fontSize: 13 }}>
-            Configure sua meta mensal em Reserva para projetar.
-          </p>
+          <p className="subtle">Configure sua meta mensal em Reserva para projetar.</p>
         ) : (
-          <>
-            <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+          <div className="stack-sm">
+            <div className="data-list">
               <div>Em 12 meses: {formatCentsBRL(projection.endTotalCents)}</div>
               <div>Poupança acumulada: {formatCentsBRL(projection.endSavingsCents)}</div>
             </div>
-            <svg
-              viewBox="0 0 320 80"
-              preserveAspectRatio="none"
-              style={{ width: '100%', height: 80, marginTop: 10 }}
-            >
+            <svg viewBox="0 0 320 80" preserveAspectRatio="none" className="chart-svg">
               <polyline points={polylinePoints} fill="none" stroke="var(--cyan)" strokeWidth="2" />
             </svg>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: 11,
-                color: 'var(--text3)',
-              }}
-            >
+            <div className="subtle" style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>mês 1</span>
               <span>mês 12</span>
             </div>
-          </>
+          </div>
         )}
       </div>
 
-      <div className="card" style={cardGap}>
-        <h2 style={h2Style}>Cenários</h2>
+      <div className="card">
+        <h2 className="section-title">Cenários</h2>
         {catalog.length === 0 ? (
-          <p style={{ color: 'var(--text3)', fontSize: 13 }}>
-            Registre gastos não-essenciais para simular cortes.
-          </p>
+          <p className="subtle">Registre gastos não-essenciais para simular cortes.</p>
         ) : (
-          <>
+          <div className="stack-sm">
             {catalog.map((c) => (
-              <div
-                key={c.category}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '8px 0',
-                  borderBottom: '1px solid var(--border)',
-                }}
-              >
-                <div style={{ flex: 1, fontSize: 12.5 }}>
+              <div key={c.category} className="list-row" style={{ alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
                   {c.category}
-                  <span style={{ color: 'var(--text3)' }}>
-                    {' '}
-                    — {formatCentsBRL(c.monthlyAvgCents)}/mês
-                  </span>
+                  <span className="subtle"> — {formatCentsBRL(c.monthlyAvgCents)}/mês</span>
                 </div>
                 <input
                   type="range"
@@ -164,16 +135,16 @@ export function AnalisePage() {
                     setCuts((prev) => ({ ...prev, [c.category]: Number(e.target.value) }))
                   }
                 />
-                <span style={{ width: 40, fontSize: 12.5, color: 'var(--text2)' }}>
+                <span className="muted" style={{ width: 40 }}>
                   {cuts[c.category] ?? 0}%
                 </span>
               </div>
             ))}
-            <div style={{ marginTop: 10, fontSize: 13 }}>
+            <div className="subtle">
               Corte total: {formatCentsBRL(scenario.totalMonthlyCents)}/mês ·{' '}
               {formatCentsBRL(scenario.annualCents)} em 12 meses
             </div>
-          </>
+          </div>
         )}
       </div>
 

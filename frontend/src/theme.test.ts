@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 
+// strip comments so selector text can't hide in them
 const css = fs
   .readFileSync(path.join(__dirname, 'theme.css'), 'utf8')
-  .replace(/\/\*[\s\S]*?\*\//g, ''); // strip comments so selector text can't hide in them
+  .replace(/\/\*[\s\S]*?\*\//g, '');
 
 function propsInBlock(selector: string): Set<string> {
   const re = new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\{');

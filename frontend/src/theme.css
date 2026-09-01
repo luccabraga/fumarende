@@ -460,3 +460,53 @@ a:focus-visible {
   height: 100%;
   background: var(--accent);
 }
+
+/* ---- async / empty ---- */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.skeleton__bar,
+.skeleton__block {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+.skeleton__bar {
+  height: 1.6rem;
+  width: 40%;
+}
+.skeleton__block {
+  height: 88px;
+}
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.async-error {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-4) 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__bar,
+  .skeleton__block {
+    animation: none;
+    opacity: 0.7;
+  }
+}

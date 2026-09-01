@@ -50,9 +50,14 @@ frontend. Runs as a launchd service at `http://localhost:4173`.
   blur (inline `field-error` + `aria-invalid`); the PDF import shows an
   indeterminate bar, an elapsed-seconds counter, and a **Cancelar** that
   aborts the client request.
-- **2.5.2** migrate the remaining files off inline styles + a page-header
-  component — next.
-- **2.5.4** accessibility audit.
+- **2.5.2 Styling convention** ✅ — every remaining inline `style={{}}`
+  (~180 across 17 files) replaced by the class vocabulary, extended with
+  `.page` / `.page-header*` / `.form-grid` / `.list-row` / `.data-list` /
+  `.data-table` / `.chart-svg`; a `<PageHeader title subtitle? actions?>`
+  component; section headings, card gaps, list-row padding, and helper
+  text snapped to the scale. Only computed values, a few layout
+  constraints, and the shared link-style Excluir buttons remain inline.
+- **2.5.4** accessibility audit — next.
 - **2.5.5** dashboard / análise grid pass.
 
 Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;

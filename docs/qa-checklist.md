@@ -4,7 +4,7 @@
 > the built server (throwaway DB, port 4199, no API key) and runs a
 > 133-assertion end-to-end pass over every module's API. Last run
 > 2026-09-01: **133/133 pass.** Unit + integration suites: **server 269,
-> frontend 158, all green.** Items below are marked `[x]` when the e2e
+> frontend 161, all green.** Items below are marked `[x]` when the e2e
 > run or a unit test verifies them; `[ ]` items are browser-visual
 > checks only a human can confirm.
 
@@ -436,3 +436,44 @@
       the field; a good submit -> a toast bottom-centre; the PDF import
       shows a sliding bar + seconds counter + Cancelar that returns to
       idle.
+
+## Styling convention (Phase 2.5.2)
+
+- [x] `<PageHeader>` — `title` renders an `<h1>`, `subtitle` renders
+      only when passed, an `actions` node renders when passed (3 unit
+      tests).
+- [x] `theme.css` gains `.page`, `.page-header*`, `.form-grid`,
+      `.list-row`, `.data-list`, `.data-table`, `.chart-svg`; the
+      class-vocabulary parse test asserts all seven are present.
+      `.page-title` no longer sets its own `margin-bottom` — vertical
+      rhythm now comes from `.page` / `.page-header` (LoginPage adds
+      `stack` to its card to compensate).
+- [x] All 11 pages wrap their body in `.page` and their heading in
+      `<PageHeader>`; forms use `.card form-grid` + `.field` /
+      `.field-label`; list/ledger rows use `.list-row`; the Histórico
+      Dólar / AI-usage / PDF-import tables use `.table-scroll` +
+      `.data-table`; label/value blocks use `.data-list`; inline SVG
+      charts use `.chart-svg`.
+- [x] The 8 shared components (ConsultorIA, AiUsageSection,
+      BarBreakdown, TargetCard, TargetSection, FixedExpensesSection,
+      CategoryRulesSection, StatementImportSection) are on the same
+      vocabulary; `BarBreakdown` reuses `.dash-goal-track` /
+      `.dash-goal-fill`.
+- [x] Every page/component test passes unchanged (assertions are on
+      text/role/label, not style) — full frontend suite 161 green,
+      `tsc --noEmit` clean, `npm run build` exit 0, server 269 green,
+      e2e 133/133.
+- [x] `grep -rn "style={{" frontend/src` returns only: computed values
+      (goal-bar / cut-slider width, conditional colour), layout
+      constraints (`flex:1`, `width:40/110/100%`, `whiteSpace:nowrap`,
+      `display:block` on file inputs), deliberate token spacing
+      (`marginTop: var(--space-*)` where a wrapper would be more
+      disruptive), and the ~9 identical link-style Excluir/Editar
+      buttons (`background:none; border:none; …`) — deferred to a
+      follow-up `.link-btn` class, out of scope for this slice.
+- [ ] Browser: every page's content and spacing matches the pre-slice
+      look within the noted consistency shifts (section headings
+      15→16px, card gaps →24px, list-row padding 10→12px, helper text
+      →11px); Câmbio / Histórico Dólar subtitles render under the
+      title; light + dark both intact; the import + AI-usage tables
+      share the `.data-table` look.

@@ -4,12 +4,10 @@ import { formatCentsBRL } from '../lib/money.js';
 import { BarBreakdown } from '../components/BarBreakdown.js';
 import { useMonth } from '../context/MonthContext.js';
 
-const cardGap = { marginBottom: 24 } as const;
-const h2Style = { fontFamily: 'var(--mono)', fontSize: 15, marginBottom: 10 } as const;
-const ALERT_COLOR: Record<api.DashboardSummary['alerts'][number]['level'], string> = {
-  info: 'var(--text2)',
-  warning: 'var(--gold, var(--text))',
-  danger: 'var(--red, var(--text))',
+const ALERT_CLASS: Record<api.DashboardSummary['alerts'][number]['level'], string> = {
+  info: 'muted',
+  warning: 'dash-alert-warning',
+  danger: 'dash-alert-danger',
 };
 
 function Delta({
@@ -24,16 +22,16 @@ function Delta({
   upIsGood: boolean;
 }) {
   if (previous === 0) {
-    return <span style={{ fontSize: 11, color: 'var(--text3)' }}>— sem mês anterior</span>;
+    return <span className="subtle">— sem mês anterior</span>;
   }
   const deltaPct = ((current - previous) / previous) * 100;
   if (Math.abs(deltaPct) < 0.5) {
-    return <span style={{ fontSize: 11, color: 'var(--text3)' }}>= igual a {previousMonth}</span>;
+    return <span className="subtle">= igual a {previousMonth}</span>;
   }
   const up = deltaPct > 0;
   const good = up === upIsGood;
   return (
-    <span style={{ fontSize: 11, color: good ? 'var(--cyan)' : 'var(--red, var(--text))' }}>
+    <span className={`subtle ${good ? 'dash-delta-up' : 'dash-delta-down'}`}>
       {up ? '↑' : '↓'} {Math.abs(Math.round(deltaPct))}% vs {previousMonth}
     </span>
   );
@@ -85,24 +83,18 @@ export function DashboardPage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily: 'var(--mono)', fontSize: 20, marginBottom: 8 }}>Dashboard</h1>
-      {summary && (
-        <p style={{ color: 'var(--text3)', fontSize: 12.5, marginBottom: 20 }}>{summary.month}</p>
-      )}
+      <h1 className="page-title">Dashboard</h1>
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+      {error && <p className="error-text">{error}</p>}
 
       {summary && (
-        <>
-          <div
-            className="card"
-            style={{ ...cardGap, display: 'flex', flexWrap: 'wrap', gap: 20, fontSize: 13 }}
-          >
+        <div className="stack">
+          <p className="subtle">{summary.month}</p>
+
+          <div className="card row">
             <div>
-              <div style={{ color: 'var(--text3)', fontSize: 11 }}>Receita do mês</div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 16 }}>
-                {formatCentsBRL(summary.income.currentCents)}
-              </div>
+              <div className="subtle">Receita do mês</div>
+              <div className="dash-stat">{formatCentsBRL(summary.income.currentCents)}</div>
               <Delta
                 current={summary.income.currentCents}
                 previous={summary.income.previousCents}
@@ -111,12 +103,10 @@ export function DashboardPage() {
               />
             </div>
             <div>
-              <div style={{ color: 'var(--text3)', fontSize: 11 }}>Gastos do mês</div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 16 }}>
-                {formatCentsBRL(summary.expenses.currentCents)}
-              </div>
+              <div className="subtle">Gastos do mês</div>
+              <div className="dash-stat">{formatCentsBRL(summary.expenses.currentCents)}</div>
               {summary.income.currentCents > 0 && (
-                <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+                <span className="subtle">
                   {Math.round((summary.expenses.currentCents / summary.income.currentCents) * 100)}% da
                   renda{' · '}
                 </span>
@@ -129,138 +119,105 @@ export function DashboardPage() {
               />
             </div>
             <div>
-              <div style={{ color: 'var(--text3)', fontSize: 11 }}>Disponível</div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 16 }}>
-                {formatCentsBRL(summary.balanceCents)}
-              </div>
+              <div className="subtle">Disponível</div>
+              <div className="dash-stat">{formatCentsBRL(summary.balanceCents)}</div>
             </div>
             <div>
-              <div style={{ color: 'var(--text3)', fontSize: 11 }}>Reserva</div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 16 }}>
-                {formatCentsBRL(summary.reserveBalanceCents)}
-              </div>
+              <div className="subtle">Reserva</div>
+              <div className="dash-stat">{formatCentsBRL(summary.reserveBalanceCents)}</div>
             </div>
           </div>
 
           {summary.alerts.length > 0 && (
-            <div className="card" style={cardGap}>
-              <h2 style={h2Style}>Alertas</h2>
-              {summary.alerts.map((a, i) => (
-                <div key={i} style={{ fontSize: 12.5, color: ALERT_COLOR[a.level], marginBottom: 4 }}>
-                  {a.message}
-                </div>
-              ))}
+            <div className="card">
+              <h2 className="section-title">Alertas</h2>
+              <div className="stack-sm">
+                {summary.alerts.map((a, i) => (
+                  <div key={i} className={ALERT_CLASS[a.level]}>
+                    {a.message}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          <div className="card" style={cardGap}>
-            <h2 style={h2Style}>Gastos por categoria</h2>
+          <div className="card">
+            <h2 className="section-title">Gastos por categoria</h2>
             <BarBreakdown
               rows={summary.expenses.byCategory.map((c) => ({ label: c.category, cents: c.cents }))}
               emptyText="Nenhum gasto este mês."
             />
           </div>
 
-          <div className="card" style={cardGap}>
-            <h2 style={h2Style}>Evolução (6 meses)</h2>
-            <svg viewBox="0 0 320 90" preserveAspectRatio="none" style={{ width: '100%', height: 90 }}>
+          <div className="card">
+            <h2 className="section-title">Evolução (6 meses)</h2>
+            <svg viewBox="0 0 320 90" preserveAspectRatio="none" className="dash-evo">
               <polyline
                 points={evoPoints('incomeCents')}
                 fill="none"
-                stroke="var(--cyan)"
+                stroke="var(--accent)"
                 strokeWidth="2"
               />
               <polyline
                 points={evoPoints('expensesCents')}
                 fill="none"
-                stroke="var(--text3)"
+                stroke="var(--text-subtle)"
                 strokeWidth="2"
               />
             </svg>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: 11,
-                color: 'var(--text3)',
-              }}
-            >
+            <div className="dash-evo-legend">
               <span>{summary.evolution[0].month}</span>
               <span>
-                <span style={{ color: 'var(--cyan)' }}>—</span> receitas{' '}
-                <span style={{ color: 'var(--text3)' }}>—</span> gastos
+                <span className="dash-delta-up">—</span> receitas{' '}
+                <span className="subtle">—</span> gastos
               </span>
               <span>{summary.evolution[summary.evolution.length - 1].month}</span>
             </div>
           </div>
 
-          <div className="card" style={cardGap}>
-            <h2 style={h2Style}>Últimos gastos</h2>
+          <div className="card">
+            <h2 className="section-title">Últimos gastos</h2>
             {summary.recentExpenses.length === 0 ? (
-              <p style={{ color: 'var(--text3)' }}>Nenhum gasto ainda.</p>
+              <p className="muted">Nenhum gasto ainda.</p>
             ) : (
               summary.recentExpenses.map((e, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    gap: 12,
-                    padding: '8px 0',
-                    borderBottom: '1px solid var(--border)',
-                    fontSize: 12.5,
-                  }}
-                >
-                  <span style={{ color: 'var(--text2)' }}>{e.date}</span>
+                <div key={i} className="dash-list-row">
+                  <span className="muted">{e.date}</span>
                   <span style={{ flex: 1 }}>{e.description}</span>
-                  <span style={{ color: 'var(--text3)' }}>{e.category}</span>
-                  <span style={{ fontFamily: 'var(--mono)' }}>{formatCentsBRL(e.amountCents)}</span>
+                  <span className="subtle">{e.category}</span>
+                  <span className="mono">{formatCentsBRL(e.amountCents)}</span>
                 </div>
               ))
             )}
           </div>
 
-          <div className="card" style={cardGap}>
-            <h2 style={h2Style}>Metas em andamento</h2>
+          <div className="card">
+            <h2 className="section-title">Metas em andamento</h2>
             {summary.topGoals.length === 0 ? (
-              <p style={{ color: 'var(--text3)' }}>Nenhuma meta ainda.</p>
+              <p className="muted">Nenhuma meta ainda.</p>
             ) : (
-              summary.topGoals.map((g, i) => (
-                <div key={i} style={{ marginBottom: 10 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: 12.5,
-                      marginBottom: 3,
-                    }}
-                  >
-                    <span>{g.name}</span>
-                    <span style={{ fontFamily: 'var(--mono)', color: 'var(--text2)' }}>
-                      {formatCentsBRL(g.currentCents)} de {formatCentsBRL(g.targetCents)}
-                    </span>
+              <div className="stack-sm">
+                {summary.topGoals.map((g, i) => (
+                  <div key={i}>
+                    <div className="dash-goal-head">
+                      <span>{g.name}</span>
+                      <span className="mono muted">
+                        {formatCentsBRL(g.currentCents)} de {formatCentsBRL(g.targetCents)}
+                      </span>
+                    </div>
+                    <div className="dash-goal-track">
+                      <div className="dash-goal-fill" style={{ width: `${g.progressPct}%` }} />
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      height: 6,
-                      background: 'var(--border)',
-                      borderRadius: 3,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{ width: `${g.progressPct}%`, height: '100%', background: 'var(--cyan)' }}
-                    />
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
 
           {summary.installments.activeGroups > 0 && (
-            <div className="card" style={cardGap}>
-              <h2 style={h2Style}>Parcelas ativas</h2>
-              <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+            <div className="card">
+              <h2 className="section-title">Parcelas ativas</h2>
+              <div className="stack-sm">
                 <div>
                   Próximo mês: {formatCentsBRL(summary.installments.nextMonthCommitmentCents)}
                 </div>
@@ -273,8 +230,8 @@ export function DashboardPage() {
           )}
 
           <div className="card">
-            <h2 style={h2Style}>Fechamento do mês</h2>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12.5 }}>
+            <h2 className="section-title">Fechamento do mês</h2>
+            <label className="row-sm">
               <input
                 type="checkbox"
                 checked={summary.monthlyClose.reviewed}
@@ -283,14 +240,14 @@ export function DashboardPage() {
               />
               <span>Mês revisado</span>
               {summary.monthlyClose.reviewed && summary.monthlyClose.reviewedAt && (
-                <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+                <span className="subtle">
                   revisado em{' '}
                   {new Date(summary.monthlyClose.reviewedAt).toLocaleDateString('pt-BR')}
                 </span>
               )}
             </label>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

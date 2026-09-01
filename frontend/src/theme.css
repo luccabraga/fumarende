@@ -385,6 +385,18 @@ a:focus-visible {
   width: 100%;
   height: 90px;
 }
+.dash-evo-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}
+.dash-goal-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-1);
+}
 .dash-list-row {
   display: flex;
   justify-content: space-between;

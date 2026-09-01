@@ -3,8 +3,8 @@
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
 > the built server (throwaway DB, port 4199, no API key) and runs a
 > 133-assertion end-to-end pass over every module's API. Last run
-> 2026-08-31: **133/133 pass.** Unit + integration suites: **server 267,
-> frontend 130, all green.** Items below are marked `[x]` when the e2e
+> 2026-09-01: **133/133 pass.** Unit + integration suites: **server 267,
+> frontend 139, all green.** Items below are marked `[x]` when the e2e
 > run or a unit test verifies them; `[ ]` items are browser-visual
 > checks only a human can confirm.
 
@@ -373,3 +373,32 @@
       shows a `Câmbio + web` row whose cost is a few cents above a
       data-only câmbio run; a `claude_api_calls` row with
       `endpoint='analysis:cambio+web'` exists.
+
+## Design system foundation (Phase 2.5.1)
+
+- [x] `ThemeContext` — defaults to `system` with no `data-theme`
+      attribute, honours a stored `light`/`dark` and sets the attribute,
+      `setTheme` persists to `localStorage['fumarende.theme']` and
+      sets/clears the attribute, a tampered value falls back to
+      `system`, `useTheme()` throws outside a provider (4 unit tests).
+- [x] `theme.css` — the `[data-theme='dark']` and
+      `prefers-color-scheme: dark` blocks declare the same
+      custom-property names; the alias tokens (`--card`, `--bg2`,
+      `--text2`, `--text3`, `--cyan`, `--coral`, `--amber`, `--sans`,
+      `--mono`, `--radius`) stay defined so the not-yet-migrated pages
+      render unchanged; the class vocabulary (`.btn*`, `.field*`,
+      `.page-title`, `.section-title`, `.stack`, `.row`, `.table-scroll`,
+      `.nav`) is present (parse test).
+- [x] `NavShell` — a Sistema/Claro/Escuro control
+      (`role="group" aria-label="Tema"`) sets and persists the theme;
+      the `Menu` hamburger toggles `.nav--open` and a nav-link click
+      closes it; the `Mês` select still works (3 unit tests).
+- [x] `LoginPage` and `DashboardPage` migrated to the class vocabulary;
+      their existing text/role tests stay green.
+- [x] Fonts are bundled — `npm run build` emits Space Grotesk +
+      JetBrains Mono `.woff2` into `dist/assets`; no `fonts.googleapis.com`.
+- [ ] Browser: the light/dark toggle recolours the whole app and the
+      choice survives a reload; "Sistema" follows the OS appearance;
+      below ~800px the sidebar is a top bar + working hamburger and wide
+      content scrolls; dark mode looks the same as before this slice;
+      the 17 un-migrated pages render correctly in both themes.

@@ -35,7 +35,17 @@ frontend. Runs as a launchd service at `http://localhost:4173`.
    section on the Análise page shows month-to-date spend, a by-kind
    breakdown, and the last 20 calls.
 
-Next: **Phase 2.5 — UX/UI polish** (see below).
+**Phase 2.5 — UX/UI polish** is underway, decomposed into sub-slices:
+
+- **2.5.1 Design system foundation** ✅ — bundled fonts (Space Grotesk,
+  JetBrains Mono), an expanded light/dark token system with a persisted
+  `Sistema / Claro / Escuro` toggle, a reusable class vocabulary
+  (`.btn*`, `.field*`, `.page-title`, `.stack`, `.row`, …), and a
+  responsive nav (top-bar + hamburger below ~800px). `NavShell`,
+  `LoginPage`, and `DashboardPage` migrated to the classes as a proof.
+- **2.5.2** migrate the remaining ~17 files off inline styles — next.
+- **2.5.3** unified loading / empty / error / form-validation patterns.
+- **2.5.4** accessibility audit.
 
 Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;
 without a key every AI route returns a clean "not configured" response

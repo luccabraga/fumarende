@@ -4,6 +4,7 @@ import { formatCentsBRL, parseCentsFromInput } from '../lib/money.js';
 import { essentialAverage, reserveTiers } from '../lib/reserva.js';
 import { useMonth } from '../context/MonthContext.js';
 import { useResource } from '../lib/useResource.js';
+import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
 import { useToast } from '../context/ToastContext.js';
@@ -21,6 +22,7 @@ const TIER_MESSAGE: Record<ReturnType<typeof reserveTiers>['tier'], string> = {
 export function ReservaPage() {
   const { month } = useMonth();
   const { toast } = useToast();
+  const f = useFormErrors();
   const r = useResource(
     () =>
       Promise.all([
@@ -72,6 +74,12 @@ export function ReservaPage() {
   const withdrawExceedsBalance =
     !Number.isNaN(withdrawCents) && withdrawCents > 0 && withdrawCents > balance;
 
+  function validateAmount(fieldKey: string, raw: string) {
+    const c = parseCentsFromInput(raw);
+    if (Number.isNaN(c) || c <= 0) f.setError(fieldKey, 'Valor inválido');
+    else f.clearError(fieldKey);
+  }
+
   async function submitEntry(
     kind: 'deposit' | 'withdrawal',
     date: string,
@@ -79,14 +87,14 @@ export function ReservaPage() {
     notes: string,
     reset: () => void,
   ) {
+    const fieldKey = kind === 'deposit' ? 'depositAmount' : 'withdrawAmount';
+    validateAmount(fieldKey, rawAmount);
     const amountCents = parseCentsFromInput(rawAmount);
-    if (Number.isNaN(amountCents) || amountCents <= 0) {
-      toast('error', 'Valor inválido');
-      return;
-    }
+    if (Number.isNaN(amountCents) || amountCents <= 0) return;
     try {
       await api.createEmergencyFundEntry({ kind, date, amountCents, notes: notes || null });
       reset();
+      f.clearError(kind === 'deposit' ? 'depositAmount' : 'withdrawAmount');
       toast('success', kind === 'deposit' ? 'Depósito registrado' : 'Retirada registrada');
       r.reload();
     } catch (err) {
@@ -154,7 +162,12 @@ export function ReservaPage() {
         <div>
           <label htmlFor="dep-amount" style={fieldStyle}>Valor do depósito (R$)</label>
           <input id="dep-amount" type="text" className="field-input" value={depositAmount}
+            aria-invalid={!!f.errors.depositAmount}
+            onBlur={() => validateAmount('depositAmount', depositAmount)}
             onChange={(e) => setDepositAmount(e.target.value)} />
+          {f.errors.depositAmount && (
+            <span className="field-error" role="alert">{f.errors.depositAmount}</span>
+          )}
         </div>
         <div>
           <label htmlFor="dep-notes" style={fieldStyle}>Descrição</label>
@@ -183,7 +196,12 @@ export function ReservaPage() {
         <div>
           <label htmlFor="wd-amount" style={fieldStyle}>Valor da retirada (R$)</label>
           <input id="wd-amount" type="text" className="field-input" value={withdrawAmount}
+            aria-invalid={!!f.errors.withdrawAmount}
+            onBlur={() => validateAmount('withdrawAmount', withdrawAmount)}
             onChange={(e) => setWithdrawAmount(e.target.value)} />
+          {f.errors.withdrawAmount && (
+            <span className="field-error" role="alert">{f.errors.withdrawAmount}</span>
+          )}
         </div>
         <div>
           <label htmlFor="wd-notes" style={fieldStyle}>Motivo</label>

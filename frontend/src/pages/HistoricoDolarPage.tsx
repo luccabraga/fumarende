@@ -3,6 +3,7 @@ import * as api from '../lib/api.js';
 import { formatCentsBRL, formatCentsUSD, parseCentsFromInput, parseRate } from '../lib/money.js';
 import { quoteStats } from '../lib/dollar.js';
 import { useResource } from '../lib/useResource.js';
+import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
 import { useToast } from '../context/ToastContext.js';
@@ -14,6 +15,7 @@ export function HistoricoDolarPage() {
   const r = useResource(() => api.listDollarQuotes(), []);
   const quotes = r.data ?? [];
   const { toast } = useToast();
+  const f = useFormErrors();
   const [month, setMonth] = useState(currentMonth());
   const [rateInput, setRateInput] = useState('');
   const [salaryInput, setSalaryInput] = useState('');
@@ -37,25 +39,36 @@ export function HistoricoDolarPage() {
       .join(' ');
   }, [stats]);
 
+  function validateRate() {
+    const rate = parseRate(rateInput);
+    if (Number.isNaN(rate) || rate <= 0) f.setError('rate', 'Cotação inválida');
+    else f.clearError('rate');
+  }
+  function validateSalary() {
+    if (salaryInput.trim() === '') {
+      f.clearError('salary');
+      return;
+    }
+    const parsed = parseCentsFromInput(salaryInput);
+    if (Number.isNaN(parsed) || parsed < 0) f.setError('salary', 'Salário inválido');
+    else f.clearError('salary');
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    validateRate();
+    validateSalary();
 
     if (!month) {
       toast('error', 'Informe o mês');
       return;
     }
     const rate = parseRate(rateInput);
-    if (Number.isNaN(rate) || rate <= 0) {
-      toast('error', 'Cotação inválida');
-      return;
-    }
+    if (Number.isNaN(rate) || rate <= 0) return;
     let salaryUsdCents: number | null = null;
     if (salaryInput.trim() !== '') {
       const parsed = parseCentsFromInput(salaryInput);
-      if (Number.isNaN(parsed) || parsed < 0) {
-        toast('error', 'Salário inválido');
-        return;
-      }
+      if (Number.isNaN(parsed) || parsed < 0) return;
       salaryUsdCents = parsed;
     }
 
@@ -63,6 +76,7 @@ export function HistoricoDolarPage() {
       await api.upsertDollarQuote(month, { rate, salaryUsdCents });
       setRateInput('');
       setSalaryInput('');
+      f.clearAll();
       toast('success', 'Cotação registrada');
       r.reload();
     } catch (err) {
@@ -99,12 +113,20 @@ export function HistoricoDolarPage() {
         <div>
           <label htmlFor="dol-rate" style={fieldStyle}>Cotação</label>
           <input id="dol-rate" type="text" className="field-input" value={rateInput}
-            placeholder="5,12" onChange={(e) => setRateInput(e.target.value)} />
+            placeholder="5,12" aria-invalid={!!f.errors.rate} onBlur={validateRate}
+            onChange={(e) => setRateInput(e.target.value)} />
+          {f.errors.rate && (
+            <span className="field-error" role="alert">{f.errors.rate}</span>
+          )}
         </div>
         <div>
           <label htmlFor="dol-salary" style={fieldStyle}>Salário no mês (US$)</label>
           <input id="dol-salary" type="text" className="field-input" value={salaryInput}
+            aria-invalid={!!f.errors.salary} onBlur={validateSalary}
             onChange={(e) => setSalaryInput(e.target.value)} />
+          {f.errors.salary && (
+            <span className="field-error" role="alert">{f.errors.salary}</span>
+          )}
         </div>
         <button type="submit" className="button-primary">Registrar cotação</button>
       </form>

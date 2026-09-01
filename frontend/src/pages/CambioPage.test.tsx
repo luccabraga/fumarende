@@ -99,6 +99,19 @@ describe('CambioPage', () => {
     await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
   });
 
+  it('validates the USD amount inline on blur', async () => {
+    vi.spyOn(api, 'listExchangeContracts').mockResolvedValue([]);
+    render(<CambioPage />);
+    await waitFor(() => expect(api.listExchangeContracts).toHaveBeenCalled());
+
+    const usd = screen.getByLabelText('Valor (US$)');
+    fireEvent.change(usd, { target: { value: '0' } });
+    fireEvent.blur(usd);
+
+    expect(await screen.findByText('Valor em USD inválido')).toBeInTheDocument();
+    expect(usd).toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('shows an error when create fails', async () => {
     vi.spyOn(api, 'listExchangeContracts').mockResolvedValue([]);
     vi.spyOn(api, 'createExchangeContract').mockRejectedValue(new Error('unauthorized'));

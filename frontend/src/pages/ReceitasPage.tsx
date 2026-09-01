@@ -2,36 +2,51 @@ import { useState, type FormEvent } from 'react';
 import * as api from '../lib/api.js';
 import { formatCentsBRL, formatCentsUSD, parseCentsFromInput } from '../lib/money.js';
 import { useResource } from '../lib/useResource.js';
+import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
+import { Field } from '../components/Field.js';
 import { useToast } from '../context/ToastContext.js';
 
 export function ReceitasPage() {
   const todayISO = () => new Date().toISOString().slice(0, 10);
   const r = useResource(() => api.listIncome(), []);
   const { toast } = useToast();
+  const f = useFormErrors();
   const [date, setDate] = useState(todayISO);
   const [amount, setAmount] = useState('');
   const [amountUsd, setAmountUsd] = useState('');
   const [description, setDescription] = useState('');
   const [source, setSource] = useState('');
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
+  function validateAmount() {
+    const c = parseCentsFromInput(amount);
+    if (Number.isNaN(c) || c <= 0) f.setError('amount', 'Valor inválido');
+    else f.clearError('amount');
+  }
 
-    const amountBrlCents = parseCentsFromInput(amount);
-    if (Number.isNaN(amountBrlCents) || amountBrlCents <= 0) {
-      toast('error', 'Valor inválido');
+  function validateAmountUsd() {
+    if (amountUsd.trim() === '') {
+      f.clearError('amountUsd');
       return;
     }
+    const c = parseCentsFromInput(amountUsd);
+    if (Number.isNaN(c) || c <= 0) f.setError('amountUsd', 'Valor em USD inválido');
+    else f.clearError('amountUsd');
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    validateAmount();
+    validateAmountUsd();
+
+    const amountBrlCents = parseCentsFromInput(amount);
+    if (Number.isNaN(amountBrlCents) || amountBrlCents <= 0) return;
 
     let amountUsdCents: number | null = null;
     if (amountUsd.trim() !== '') {
       const parsed = parseCentsFromInput(amountUsd);
-      if (Number.isNaN(parsed) || parsed <= 0) {
-        toast('error', 'Valor em USD inválido');
-        return;
-      }
+      if (Number.isNaN(parsed) || parsed <= 0) return;
       amountUsdCents = parsed;
     }
 
@@ -48,6 +63,7 @@ export function ReceitasPage() {
       setAmountUsd('');
       setDescription('');
       setSource('');
+      f.clearAll();
       toast('success', 'Receita adicionada');
       r.reload();
     } catch (err) {
@@ -68,68 +84,61 @@ export function ReceitasPage() {
     <div>
       <h1 className="page-title">Receitas</h1>
 
-      <form onSubmit={handleSubmit} className="card" style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-end' }}>
-        <div>
-          <label htmlFor="date" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-            Data
-          </label>
+      <form
+        onSubmit={handleSubmit}
+        className="card"
+        style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start' }}
+      >
+        <Field label="Data" htmlFor="rec-date">
           <input
-            id="date"
+            id="rec-date"
             type="date"
             className="field-input"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
-        </div>
-        <div>
-          <label htmlFor="amount" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-            Valor (R$)
-          </label>
+        </Field>
+        <Field label="Valor (R$)" htmlFor="rec-amount" error={f.errors.amount}>
           <input
-            id="amount"
+            id="rec-amount"
             type="text"
             className="field-input"
             value={amount}
+            aria-invalid={!!f.errors.amount}
+            onBlur={validateAmount}
             onChange={(e) => setAmount(e.target.value)}
           />
-        </div>
-        <div>
-          <label htmlFor="amount-usd" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-            Valor (US$)
-          </label>
+        </Field>
+        <Field label="Valor (US$)" htmlFor="rec-amount-usd" error={f.errors.amountUsd}>
           <input
-            id="amount-usd"
+            id="rec-amount-usd"
             type="text"
             className="field-input"
             value={amountUsd}
+            aria-invalid={!!f.errors.amountUsd}
+            onBlur={validateAmountUsd}
             onChange={(e) => setAmountUsd(e.target.value)}
           />
-        </div>
-        <div>
-          <label htmlFor="description" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-            Descrição
-          </label>
+        </Field>
+        <Field label="Descrição" htmlFor="rec-description">
           <input
-            id="description"
+            id="rec-description"
             type="text"
             className="field-input"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-        </div>
-        <div>
-          <label htmlFor="source" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-            Origem
-          </label>
+        </Field>
+        <Field label="Origem" htmlFor="rec-source">
           <input
-            id="source"
+            id="rec-source"
             type="text"
             className="field-input"
             value={source}
             onChange={(e) => setSource(e.target.value)}
           />
-        </div>
-        <button type="submit" className="button-primary">
+        </Field>
+        <button type="submit" className="button-primary" style={{ marginTop: 20 }}>
           Adicionar
         </button>
       </form>

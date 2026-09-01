@@ -3,6 +3,7 @@ import * as api from '../lib/api.js';
 import { formatCentsBRL, formatCentsUSD, parseCentsFromInput, parseRate } from '../lib/money.js';
 import { calcCambio } from '../lib/cambio.js';
 import { useResource } from '../lib/useResource.js';
+import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
 import { useToast } from '../context/ToastContext.js';
@@ -16,6 +17,7 @@ export function CambioPage() {
   const r = useResource(() => api.listExchangeContracts(), []);
   const contracts = r.data ?? [];
   const { toast } = useToast();
+  const f = useFormErrors();
   const [date, setDate] = useState(todayISO);
   const [institution, setInstitution] = useState(INSTITUTIONS[0]);
   const [operationType, setOperationType] = useState<'compra' | 'venda'>('compra');
@@ -54,25 +56,37 @@ export function CambioPage() {
       })
     : null;
 
+  function validateAmountUsd() {
+    if (Number.isNaN(amountUsdCents) || amountUsdCents <= 0)
+      f.setError('amountUsd', 'Valor em USD inválido');
+    else f.clearError('amountUsd');
+  }
+  function validateRate() {
+    if (Number.isNaN(rate) || rate <= 0) f.setError('rate', 'Taxa cambial inválida');
+    else f.clearError('rate');
+  }
+  function validatePtax() {
+    if (ptaxInput.trim() !== '' && (ptax === null || Number.isNaN(ptax) || ptax <= 0))
+      f.setError('ptax', 'PTAX inválida');
+    else f.clearError('ptax');
+  }
+  function validateFees() {
+    if (Number.isNaN(iofCents) || Number.isNaN(bankFeeCents))
+      f.setError('fees', 'IOF ou tarifa inválidos');
+    else f.clearError('fees');
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    validateAmountUsd();
+    validateRate();
+    validatePtax();
+    validateFees();
 
-    if (Number.isNaN(amountUsdCents) || amountUsdCents <= 0) {
-      toast('error', 'Valor em USD inválido');
-      return;
-    }
-    if (Number.isNaN(rate) || rate <= 0) {
-      toast('error', 'Taxa cambial inválida');
-      return;
-    }
-    if (ptaxInput.trim() !== '' && (ptax === null || Number.isNaN(ptax) || ptax <= 0)) {
-      toast('error', 'PTAX inválida');
-      return;
-    }
-    if (Number.isNaN(iofCents) || Number.isNaN(bankFeeCents)) {
-      toast('error', 'IOF ou tarifa inválidos');
-      return;
-    }
+    if (Number.isNaN(amountUsdCents) || amountUsdCents <= 0) return;
+    if (Number.isNaN(rate) || rate <= 0) return;
+    if (ptaxInput.trim() !== '' && (ptax === null || Number.isNaN(ptax) || ptax <= 0)) return;
+    if (Number.isNaN(iofCents) || Number.isNaN(bankFeeCents)) return;
 
     try {
       await api.createExchangeContract({
@@ -95,6 +109,7 @@ export function CambioPage() {
       setBankFee('0');
       setSourcePdfRef('');
       setNotes('');
+      f.clearAll();
       toast('success', 'Operação registrada');
       r.reload();
     } catch (err) {
@@ -157,27 +172,44 @@ export function CambioPage() {
         <div>
           <label htmlFor="cambio-amount-usd" style={fieldStyle}>Valor (US$)</label>
           <input id="cambio-amount-usd" type="text" className="field-input" value={amountUsd}
+            aria-invalid={!!f.errors.amountUsd} onBlur={validateAmountUsd}
             onChange={(e) => setAmountUsd(e.target.value)} />
+          {f.errors.amountUsd && (
+            <span className="field-error" role="alert">{f.errors.amountUsd}</span>
+          )}
         </div>
         <div>
           <label htmlFor="cambio-rate" style={fieldStyle}>Taxa cambial</label>
           <input id="cambio-rate" type="text" className="field-input" value={rateInput}
-            placeholder="5,0994" onChange={(e) => setRateInput(e.target.value)} />
+            placeholder="5,0994" aria-invalid={!!f.errors.rate} onBlur={validateRate}
+            onChange={(e) => setRateInput(e.target.value)} />
+          {f.errors.rate && (
+            <span className="field-error" role="alert">{f.errors.rate}</span>
+          )}
         </div>
         <div>
           <label htmlFor="cambio-ptax" style={fieldStyle}>PTAX (opcional)</label>
           <input id="cambio-ptax" type="text" className="field-input" value={ptaxInput}
+            aria-invalid={!!f.errors.ptax} onBlur={validatePtax}
             onChange={(e) => setPtaxInput(e.target.value)} />
+          {f.errors.ptax && (
+            <span className="field-error" role="alert">{f.errors.ptax}</span>
+          )}
         </div>
         <div>
           <label htmlFor="cambio-iof" style={fieldStyle}>IOF (R$)</label>
           <input id="cambio-iof" type="text" className="field-input" value={iof}
+            aria-invalid={!!f.errors.fees} onBlur={validateFees}
             onChange={(e) => setIof(e.target.value)} />
         </div>
         <div>
           <label htmlFor="cambio-bank-fee" style={fieldStyle}>Tarifa (R$)</label>
           <input id="cambio-bank-fee" type="text" className="field-input" value={bankFee}
+            aria-invalid={!!f.errors.fees} onBlur={validateFees}
             onChange={(e) => setBankFee(e.target.value)} />
+          {f.errors.fees && (
+            <span className="field-error" role="alert">{f.errors.fees}</span>
+          )}
         </div>
         <div>
           <label htmlFor="cambio-ref" style={fieldStyle}>Nº comprovante / referência</label>

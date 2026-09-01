@@ -119,6 +119,19 @@ describe('ReceitasPage', () => {
     expect(screen.getByText('Nenhum lançamento ainda.')).toBeInTheDocument();
   });
 
+  it('shows an inline field error when the amount is invalid on blur', async () => {
+    vi.spyOn(api, 'listIncome').mockResolvedValue([]);
+    render(<ReceitasPage />);
+    await waitFor(() => expect(api.listIncome).toHaveBeenCalled());
+
+    const amount = screen.getByLabelText('Valor (R$)');
+    fireEvent.change(amount, { target: { value: 'abc' } });
+    fireEvent.blur(amount);
+
+    expect(await screen.findByText('Valor inválido')).toBeInTheDocument();
+    expect(amount).toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('shows an error when the delete request fails', async () => {
     vi.spyOn(api, 'listIncome').mockResolvedValue([
       {

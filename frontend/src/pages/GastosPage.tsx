@@ -6,6 +6,7 @@ import { FixedExpensesSection } from '../components/FixedExpensesSection.js';
 import { CategoryRulesSection } from '../components/CategoryRulesSection.js';
 import { StatementImportSection } from '../components/StatementImportSection.js';
 import { useResource } from '../lib/useResource.js';
+import { useFormErrors } from '../lib/useFormErrors.js';
 import { AsyncBoundary } from '../components/AsyncBoundary.js';
 import { EmptyState } from '../components/EmptyState.js';
 import { useToast } from '../context/ToastContext.js';
@@ -18,6 +19,7 @@ export function GastosPage() {
   const expensesR = useResource(() => api.listExpenses(), []);
   const expenses = expensesR.data ?? [];
   const { toast } = useToast();
+  const f = useFormErrors();
   const [date, setDate] = useState(todayISO);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -27,22 +29,34 @@ export function GastosPage() {
   const [installments, setInstallments] = useState('');
   const [sweeping, setSweeping] = useState(false);
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-
-    const amountCents = parseCentsFromInput(amount);
-    if (Number.isNaN(amountCents) || amountCents <= 0) {
-      toast('error', 'Valor inválido');
+  function validateAmount() {
+    const c = parseCentsFromInput(amount);
+    if (Number.isNaN(c) || c <= 0) f.setError('amount', 'Valor inválido');
+    else f.clearError('amount');
+  }
+  function validateInstallments() {
+    if (installments.trim() === '') {
+      f.clearError('installments');
       return;
     }
+    const parsed = Number(installments);
+    if (!Number.isInteger(parsed) || parsed < 1)
+      f.setError('installments', 'Número de parcelas inválido');
+    else f.clearError('installments');
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    validateAmount();
+    validateInstallments();
+
+    const amountCents = parseCentsFromInput(amount);
+    if (Number.isNaN(amountCents) || amountCents <= 0) return;
 
     let installmentTotal: number | null = null;
     if (installments.trim() !== '') {
       const parsed = Number(installments);
-      if (!Number.isInteger(parsed) || parsed < 1) {
-        toast('error', 'Número de parcelas inválido');
-        return;
-      }
+      if (!Number.isInteger(parsed) || parsed < 1) return;
       installmentTotal = parsed;
     }
 
@@ -62,6 +76,7 @@ export function GastosPage() {
       setAmount('');
       setInstallments('');
       setCategory(AUTO);
+      f.clearAll();
       toast('success', 'Gasto adicionado');
       expensesR.reload();
     } catch (err) {
@@ -128,7 +143,11 @@ export function GastosPage() {
         <div>
           <label htmlFor="gasto-amount" style={fieldStyle}>Valor (R$)</label>
           <input id="gasto-amount" type="text" className="field-input" value={amount}
+            aria-invalid={!!f.errors.amount} onBlur={validateAmount}
             onChange={(e) => setAmount(e.target.value)} />
+          {f.errors.amount && (
+            <span className="field-error" role="alert">{f.errors.amount}</span>
+          )}
         </div>
         <div>
           <label htmlFor="gasto-category" style={fieldStyle}>Categoria</label>
@@ -156,7 +175,12 @@ export function GastosPage() {
         <div>
           <label htmlFor="gasto-installments" style={fieldStyle}>Parcelas</label>
           <input id="gasto-installments" type="number" min="1" className="field-input"
-            value={installments} onChange={(e) => setInstallments(e.target.value)} />
+            value={installments} aria-invalid={!!f.errors.installments}
+            onBlur={validateInstallments}
+            onChange={(e) => setInstallments(e.target.value)} />
+          {f.errors.installments && (
+            <span className="field-error" role="alert">{f.errors.installments}</span>
+          )}
         </div>
         <button type="submit" className="button-primary">+ Adicionar gasto</button>
       </form>

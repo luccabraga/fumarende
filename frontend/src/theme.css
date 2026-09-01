@@ -290,10 +290,31 @@ a:focus-visible {
   margin-top: var(--space-1);
 }
 .theme-toggle {
-  display: flex;
-  gap: var(--space-1);
-  padding: 0 18px var(--space-4);
-  flex-wrap: wrap;
+  display: inline-flex;
+  margin: var(--space-2) 18px var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.theme-toggle .btn {
+  border: none;
+  border-right: 1px solid var(--border-strong);
+  border-radius: 0;
+  padding: 6px 10px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-muted);
+}
+.theme-toggle .btn:last-child {
+  border-right: none;
+}
+.theme-toggle .btn:hover:not([aria-pressed='true']) {
+  background: var(--bg-sunken);
+  color: var(--text);
+}
+.theme-toggle .btn[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-contrast);
 }
 .nav__link {
   padding: 9px 22px;

@@ -32,7 +32,7 @@ function ThemeToggle() {
         <button
           key={c.value}
           type="button"
-          className="btn btn-sm btn-ghost"
+          className="btn btn-sm"
           aria-pressed={theme === c.value}
           onClick={() => setTheme(c.value)}
         >

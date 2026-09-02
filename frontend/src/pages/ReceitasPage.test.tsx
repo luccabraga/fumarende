@@ -130,6 +130,8 @@ describe('ReceitasPage', () => {
 
     expect(await screen.findByText('Valor inválido')).toBeInTheDocument();
     expect(amount).toHaveAttribute('aria-invalid', 'true');
+    expect(amount).toHaveAttribute('aria-describedby', 'rec-amount-error');
+    expect(screen.getByRole('alert')).toHaveAttribute('id', 'rec-amount-error');
   });
 
   it('shows an error when the delete request fails', async () => {

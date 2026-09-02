@@ -19,5 +19,6 @@ describe('Field', () => {
       </Field>,
     );
     expect(screen.getByRole('alert')).toHaveTextContent('Valor inválido');
+    expect(screen.getByRole('alert')).toHaveAttribute('id', 'v-error');
   });
 });

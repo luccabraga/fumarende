@@ -109,19 +109,23 @@ export function HistoricoDolarPage() {
         <div className="field">
           <label className="field-label" htmlFor="dol-rate">Cotação</label>
           <input id="dol-rate" type="text" className="field-input" value={rateInput}
-            placeholder="5,12" aria-invalid={!!f.errors.rate} onBlur={validateRate}
+            placeholder="5,12" aria-invalid={!!f.errors.rate}
+            aria-describedby={f.errors.rate ? 'dol-rate-error' : undefined}
+            onBlur={validateRate}
             onChange={(e) => setRateInput(e.target.value)} />
           {f.errors.rate && (
-            <span className="field-error" role="alert">{f.errors.rate}</span>
+            <span className="field-error" role="alert" id="dol-rate-error">{f.errors.rate}</span>
           )}
         </div>
         <div className="field">
           <label className="field-label" htmlFor="dol-salary">Salário no mês (US$)</label>
           <input id="dol-salary" type="text" className="field-input" value={salaryInput}
-            aria-invalid={!!f.errors.salary} onBlur={validateSalary}
+            aria-invalid={!!f.errors.salary}
+            aria-describedby={f.errors.salary ? 'dol-salary-error' : undefined}
+            onBlur={validateSalary}
             onChange={(e) => setSalaryInput(e.target.value)} />
           {f.errors.salary && (
-            <span className="field-error" role="alert">{f.errors.salary}</span>
+            <span className="field-error" role="alert" id="dol-salary-error">{f.errors.salary}</span>
           )}
         </div>
         <button type="submit" className="button-primary">Registrar cotação</button>

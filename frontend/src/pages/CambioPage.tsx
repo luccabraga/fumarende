@@ -167,43 +167,53 @@ export function CambioPage() {
         <div className="field">
           <label className="field-label" htmlFor="cambio-amount-usd">Valor (US$)</label>
           <input id="cambio-amount-usd" type="text" className="field-input" value={amountUsd}
-            aria-invalid={!!f.errors.amountUsd} onBlur={validateAmountUsd}
+            aria-invalid={!!f.errors.amountUsd}
+            aria-describedby={f.errors.amountUsd ? 'cambio-amount-usd-error' : undefined}
+            onBlur={validateAmountUsd}
             onChange={(e) => setAmountUsd(e.target.value)} />
           {f.errors.amountUsd && (
-            <span className="field-error" role="alert">{f.errors.amountUsd}</span>
+            <span className="field-error" role="alert" id="cambio-amount-usd-error">{f.errors.amountUsd}</span>
           )}
         </div>
         <div className="field">
           <label className="field-label" htmlFor="cambio-rate">Taxa cambial</label>
           <input id="cambio-rate" type="text" className="field-input" value={rateInput}
-            placeholder="5,0994" aria-invalid={!!f.errors.rate} onBlur={validateRate}
+            placeholder="5,0994" aria-invalid={!!f.errors.rate}
+            aria-describedby={f.errors.rate ? 'cambio-rate-error' : undefined}
+            onBlur={validateRate}
             onChange={(e) => setRateInput(e.target.value)} />
           {f.errors.rate && (
-            <span className="field-error" role="alert">{f.errors.rate}</span>
+            <span className="field-error" role="alert" id="cambio-rate-error">{f.errors.rate}</span>
           )}
         </div>
         <div className="field">
           <label className="field-label" htmlFor="cambio-ptax">PTAX (opcional)</label>
           <input id="cambio-ptax" type="text" className="field-input" value={ptaxInput}
-            aria-invalid={!!f.errors.ptax} onBlur={validatePtax}
+            aria-invalid={!!f.errors.ptax}
+            aria-describedby={f.errors.ptax ? 'cambio-ptax-error' : undefined}
+            onBlur={validatePtax}
             onChange={(e) => setPtaxInput(e.target.value)} />
           {f.errors.ptax && (
-            <span className="field-error" role="alert">{f.errors.ptax}</span>
+            <span className="field-error" role="alert" id="cambio-ptax-error">{f.errors.ptax}</span>
           )}
         </div>
         <div className="field">
           <label className="field-label" htmlFor="cambio-iof">IOF (R$)</label>
           <input id="cambio-iof" type="text" className="field-input" value={iof}
-            aria-invalid={!!f.errors.fees} onBlur={validateFees}
+            aria-invalid={!!f.errors.fees}
+            aria-describedby={f.errors.fees ? 'cambio-fees-error' : undefined}
+            onBlur={validateFees}
             onChange={(e) => setIof(e.target.value)} />
         </div>
         <div className="field">
           <label className="field-label" htmlFor="cambio-bank-fee">Tarifa (R$)</label>
           <input id="cambio-bank-fee" type="text" className="field-input" value={bankFee}
-            aria-invalid={!!f.errors.fees} onBlur={validateFees}
+            aria-invalid={!!f.errors.fees}
+            aria-describedby={f.errors.fees ? 'cambio-fees-error' : undefined}
+            onBlur={validateFees}
             onChange={(e) => setBankFee(e.target.value)} />
           {f.errors.fees && (
-            <span className="field-error" role="alert">{f.errors.fees}</span>
+            <span className="field-error" role="alert" id="cambio-fees-error">{f.errors.fees}</span>
           )}
         </div>
         <div className="field">

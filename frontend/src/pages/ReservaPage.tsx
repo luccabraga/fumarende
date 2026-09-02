@@ -162,10 +162,11 @@ export function ReservaPage() {
           <label className="field-label" htmlFor="dep-amount">Valor do depósito (R$)</label>
           <input id="dep-amount" type="text" className="field-input" value={depositAmount}
             aria-invalid={!!f.errors.depositAmount}
+            aria-describedby={f.errors.depositAmount ? 'dep-amount-error' : undefined}
             onBlur={() => validateAmount('depositAmount', depositAmount)}
             onChange={(e) => setDepositAmount(e.target.value)} />
           {f.errors.depositAmount && (
-            <span className="field-error" role="alert">{f.errors.depositAmount}</span>
+            <span className="field-error" role="alert" id="dep-amount-error">{f.errors.depositAmount}</span>
           )}
         </div>
         <div className="field">
@@ -195,10 +196,11 @@ export function ReservaPage() {
           <label className="field-label" htmlFor="wd-amount">Valor da retirada (R$)</label>
           <input id="wd-amount" type="text" className="field-input" value={withdrawAmount}
             aria-invalid={!!f.errors.withdrawAmount}
+            aria-describedby={f.errors.withdrawAmount ? 'wd-amount-error' : undefined}
             onBlur={() => validateAmount('withdrawAmount', withdrawAmount)}
             onChange={(e) => setWithdrawAmount(e.target.value)} />
           {f.errors.withdrawAmount && (
-            <span className="field-error" role="alert">{f.errors.withdrawAmount}</span>
+            <span className="field-error" role="alert" id="wd-amount-error">{f.errors.withdrawAmount}</span>
           )}
         </div>
         <div className="field">

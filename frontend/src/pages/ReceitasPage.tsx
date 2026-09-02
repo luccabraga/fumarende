@@ -102,6 +102,7 @@ export function ReceitasPage() {
             className="field-input"
             value={amount}
             aria-invalid={!!f.errors.amount}
+            aria-describedby={f.errors.amount ? 'rec-amount-error' : undefined}
             onBlur={validateAmount}
             onChange={(e) => setAmount(e.target.value)}
           />
@@ -113,6 +114,7 @@ export function ReceitasPage() {
             className="field-input"
             value={amountUsd}
             aria-invalid={!!f.errors.amountUsd}
+            aria-describedby={f.errors.amountUsd ? 'rec-amount-usd-error' : undefined}
             onBlur={validateAmountUsd}
             onChange={(e) => setAmountUsd(e.target.value)}
           />

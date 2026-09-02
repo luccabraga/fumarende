@@ -139,10 +139,12 @@ export function GastosPage() {
         <div className="field">
           <label className="field-label" htmlFor="gasto-amount">Valor (R$)</label>
           <input id="gasto-amount" type="text" className="field-input" value={amount}
-            aria-invalid={!!f.errors.amount} onBlur={validateAmount}
+            aria-invalid={!!f.errors.amount}
+            aria-describedby={f.errors.amount ? 'gasto-amount-error' : undefined}
+            onBlur={validateAmount}
             onChange={(e) => setAmount(e.target.value)} />
           {f.errors.amount && (
-            <span className="field-error" role="alert">{f.errors.amount}</span>
+            <span className="field-error" role="alert" id="gasto-amount-error">{f.errors.amount}</span>
           )}
         </div>
         <div className="field">
@@ -172,10 +174,11 @@ export function GastosPage() {
           <label className="field-label" htmlFor="gasto-installments">Parcelas</label>
           <input id="gasto-installments" type="number" min="1" className="field-input"
             value={installments} aria-invalid={!!f.errors.installments}
+            aria-describedby={f.errors.installments ? 'gasto-installments-error' : undefined}
             onBlur={validateInstallments}
             onChange={(e) => setInstallments(e.target.value)} />
           {f.errors.installments && (
-            <span className="field-error" role="alert">{f.errors.installments}</span>
+            <span className="field-error" role="alert" id="gasto-installments-error">{f.errors.installments}</span>
           )}
         </div>
         <button type="submit" className="button-primary">+ Adicionar gasto</button>

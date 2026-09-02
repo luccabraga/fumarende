@@ -86,6 +86,8 @@ describe('theme.css', () => {
       '.data-list',
       '.data-table',
       '.chart-svg',
+      '.grid',
+      '.grid__full',
       '.skip-link',
       '.sr-only',
       '.link-btn',

@@ -674,6 +674,15 @@ textarea {
   width: 100%;
   height: 80px;
 }
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+}
+.grid__full {
+  grid-column: 1 / -1;
+}
 
 /* ---- a11y utilities (2.5.4) ---- */
 .sr-only {

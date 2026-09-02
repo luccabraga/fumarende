@@ -57,14 +57,7 @@ export function CategoryRulesSection() {
               type="button"
               onClick={() => handleDelete(r.id)}
               aria-label={`Excluir regra ${r.keyword}`}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                fontSize: 12.5,
-                color: 'var(--text3)',
-                cursor: 'pointer',
-              }}
+              className="link-btn"
             >
               Excluir
             </button>

@@ -157,14 +157,7 @@ export function ReceitasPage() {
                 type="button"
                 onClick={() => handleDelete(entry.id)}
                 aria-label={`Excluir lançamento de ${entry.date}`}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  fontSize: 12.5,
-                  color: 'var(--text3)',
-                  cursor: 'pointer',
-                }}
+                className="link-btn"
               >
                 Excluir
               </button>

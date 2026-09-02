@@ -267,14 +267,7 @@ export function CambioPage() {
               type="button"
               onClick={() => handleDelete(c.id)}
               aria-label={`Excluir operação de ${c.date}`}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                fontSize: 12.5,
-                color: 'var(--text3)',
-                cursor: 'pointer',
-              }}
+              className="link-btn"
             >
               Excluir
             </button>

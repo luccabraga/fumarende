@@ -81,14 +81,7 @@ export function FixedExpensesSection({ onApplied }: { onApplied?: () => void }) 
               type="button"
               onClick={() => handleDelete(t.id)}
               aria-label={`Excluir gasto fixo ${t.description}`}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                fontSize: 12.5,
-                color: 'var(--text3)',
-                cursor: 'pointer',
-              }}
+              className="link-btn"
             >
               Excluir
             </button>

@@ -59,14 +59,7 @@ export function AiUsageSection() {
             <button
               type="button"
               onClick={() => setShowLog((v) => !v)}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                fontSize: 12.5,
-                color: 'var(--text2)',
-                cursor: 'pointer',
-              }}
+              className="link-btn"
             >
               {showLog ? '▾' : '▸'} Últimas chamadas ({usage.recent.length})
             </button>

@@ -47,14 +47,7 @@ export function ParcelasPage() {
                 type="button"
                 onClick={() => handleDelete(g.groupId)}
                 aria-label={`Excluir parcelamento ${g.description}`}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  fontSize: 12.5,
-                  color: 'var(--text3)',
-                  cursor: 'pointer',
-                }}
+                className="link-btn"
               >
                 Excluir
               </button>

@@ -175,14 +175,7 @@ export function HistoricoDolarPage() {
                       type="button"
                       onClick={() => handleDelete(r.month)}
                       aria-label={`Excluir cotação de ${r.month}`}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        fontSize: 12.5,
-                        color: 'var(--text3)',
-                        cursor: 'pointer',
-                      }}
+                      className="link-btn"
                     >
                       Excluir
                     </button>

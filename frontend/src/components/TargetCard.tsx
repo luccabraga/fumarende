@@ -11,15 +11,6 @@ interface TargetCardProps {
   onDelete: (id: number) => void;
 }
 
-const ghostBtn = {
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  fontSize: 12.5,
-  color: 'var(--text3)',
-  cursor: 'pointer',
-} as const;
-
 export function TargetCard({ target, showNotes, onAdd, onUpdate, onDelete }: TargetCardProps) {
   const p = targetProgress(target);
   const [adding, setAdding] = useState(false);
@@ -87,7 +78,7 @@ export function TargetCard({ target, showNotes, onAdd, onUpdate, onDelete }: Tar
           type="button"
           onClick={() => setAdding((v) => !v)}
           aria-label={`Adicionar à meta ${target.name}`}
-          style={ghostBtn}
+          className="link-btn"
         >
           Adicionar
         </button>
@@ -95,7 +86,7 @@ export function TargetCard({ target, showNotes, onAdd, onUpdate, onDelete }: Tar
           type="button"
           onClick={() => setEditing((v) => !v)}
           aria-label={`Editar ${target.name}`}
-          style={ghostBtn}
+          className="link-btn"
         >
           Editar
         </button>
@@ -103,7 +94,7 @@ export function TargetCard({ target, showNotes, onAdd, onUpdate, onDelete }: Tar
           type="button"
           onClick={() => onDelete(target.id)}
           aria-label={`Excluir ${target.name}`}
-          style={ghostBtn}
+          className="link-btn"
         >
           Excluir
         </button>

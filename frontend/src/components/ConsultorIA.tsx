@@ -113,14 +113,7 @@ export function ConsultorIA() {
           <button
             type="button"
             onClick={() => setShowHistory((v) => !v)}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              fontSize: 12.5,
-              color: 'var(--text2)',
-              cursor: 'pointer',
-            }}
+            className="link-btn"
           >
             {showHistory ? '▾' : '▸'} Histórico ({history.length})
           </button>

@@ -78,10 +78,10 @@ export function DashboardPage() {
 
       <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload} skeletonRows={6}>
       {summary && (
-        <div className="stack">
-          <p className="subtle">{summary.month}</p>
+        <div className="grid">
+          <p className="subtle grid__full">{summary.month}</p>
 
-          <div className="card row">
+          <div className="card row grid__full">
             <div>
               <div className="subtle">Receita do mês</div>
               <div className="dash-stat">{formatCentsBRL(summary.income.currentCents)}</div>
@@ -119,7 +119,7 @@ export function DashboardPage() {
           </div>
 
           {summary.alerts.length > 0 && (
-            <div className="card">
+            <div className="card grid__full">
               <h2 className="section-title">Alertas</h2>
               <div className="stack-sm">
                 {summary.alerts.map((a, i) => (

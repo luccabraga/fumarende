@@ -111,4 +111,11 @@ describe('DashboardPage', () => {
     renderPage();
     await waitFor(() => expect(api.getDashboard).toHaveBeenCalledWith('2026-06'));
   });
+
+  it('lays the cards out in a responsive grid', async () => {
+    const { container } = renderPage();
+    await screen.findByText('R$ 5.000,00');
+    expect(container.querySelector('.grid')).not.toBeNull();
+    expect(container.querySelector('.card.row.grid__full')).not.toBeNull();
+  });
 });

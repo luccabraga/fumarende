@@ -71,6 +71,7 @@ export function AnalisePage() {
       <PageHeader title="Análise" />
 
       <AsyncBoundary loading={r.loading} error={r.error} onRetry={r.reload} skeletonRows={4}>
+      <div className="grid">
       <div className="card">
         <h2 className="section-title">Resumo</h2>
         <div className="data-list">
@@ -147,6 +148,7 @@ export function AnalisePage() {
             </div>
           </div>
         )}
+      </div>
       </div>
 
       </AsyncBoundary>

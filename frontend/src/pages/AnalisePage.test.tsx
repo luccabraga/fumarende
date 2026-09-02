@@ -100,4 +100,12 @@ describe('AnalisePage', () => {
     renderPage();
     expect(await screen.findByText(/Configure sua meta mensal em Reserva/)).toBeInTheDocument();
   });
+
+  it('lays the analysis cards out in a grid', async () => {
+    const { container } = renderPage();
+    await screen.findByRole('heading', { name: 'Resumo' });
+    const grid = container.querySelector('.grid');
+    expect(grid).not.toBeNull();
+    expect(grid?.querySelector('h2')?.textContent).toBe('Resumo');
+  });
 });

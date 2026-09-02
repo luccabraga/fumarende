@@ -4,7 +4,7 @@
 > the built server (throwaway DB, port 4199, no API key) and runs a
 > 133-assertion end-to-end pass over every module's API. Last run
 > 2026-09-01: **133/133 pass.** Unit + integration suites: **server 269,
-> frontend 161, all green.** Items below are marked `[x]` when the e2e
+> frontend 167, all green.** Items below are marked `[x]` when the e2e
 > run or a unit test verifies them; `[ ]` items are browser-visual
 > checks only a human can confirm.
 
@@ -477,3 +477,38 @@
       →11px); Câmbio / Histórico Dólar subtitles render under the
       title; light + dark both intact; the import + AI-usage tables
       share the `.data-table` look.
+
+## Accessibility (Phase 2.5.4)
+
+- [x] `.skip-link` / `.sr-only` / `.link-btn` present (vocab parse
+      test); `:focus-visible` is now a bare rule so every focusable
+      control gets the accent outline.
+- [x] Computed contrast test — light `--accent` / `--danger` /
+      `--warning` / `--text-subtle` / `--success` clear 4.5:1 on `#fff`
+      and `#f7f6f3`; dark `--text-subtle` / `--text-muted` clear 4.5:1
+      on `#101016`.
+- [x] Skip link targets `#main`; `<nav aria-label="Navegação
+      principal">`; `<main id="main" tabIndex={-1}>`; hamburger
+      `aria-expanded` toggles and `aria-controls="nav-list"` (NavShell
+      unit tests).
+- [x] On navigation `document.title` becomes `"<Page> · fumarende"` and
+      focus moves to `<main>` (App unit test); the first (cold) render
+      sets the title but does not steal focus.
+- [x] The inline link-style buttons are now `.link-btn` (focusable,
+      hover-underlined); `grep "background: 'none'"` is clean.
+- [x] ConsultorIA "Histórico" + AiUsage "Últimas chamadas" toggles
+      carry `aria-expanded` + `aria-controls` pointing at the revealed
+      region (unit test).
+- [x] Field errors: the `role="alert"` span is `id="<field>-error"` and
+      its input has `aria-describedby` while the error shows (Field +
+      ReceitasPage unit tests); applied to Receitas + Câmbio + Gastos +
+      Reserva + Histórico Dólar.
+- [x] `.data-table` headers are `scope="col"`; the dólar + import
+      tables have an `sr-only` `<caption>`; the Análise cut sliders
+      have `aria-valuetext` (`"50%"`).
+- [ ] Browser / VoiceOver: Tab from a cold load lands on "Pular para o
+      conteúdo"; focus ring on every button/link/checkbox/slider/file
+      input; disclosure toggles announce expanded/collapsed; route
+      change updates the tab title and moves focus; light + dark both
+      legible (light `--accent` buttons / `.error-text` / `.subtle`
+      captions visibly darker, dark `.subtle` slightly lighter).

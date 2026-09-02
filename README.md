@@ -57,8 +57,15 @@ frontend. Runs as a launchd service at `http://localhost:4173`.
   component; section headings, card gaps, list-row padding, and helper
   text snapped to the scale. Only computed values, a few layout
   constraints, and the shared link-style Excluir buttons remain inline.
-- **2.5.4** accessibility audit — next.
-- **2.5.5** dashboard / análise grid pass.
+- **2.5.4 Accessibility audit** ✅ — a skip link + labelled landmarks +
+  `<main id tabIndex>`; `:focus-visible` broadened to every control and
+  the inline link-buttons folded into a `.link-btn` class; `aria-expanded`
+  on the disclosure toggles; `aria-describedby` linking field errors to
+  their inputs; `scope="col"` + `sr-only` captions on the data tables;
+  five light tokens (+ dark `--text-subtle`) retuned to clear WCAG AA
+  4.5:1, locked with a computed contrast test; on route change the tab
+  title updates and focus moves to `<main>`.
+- **2.5.5** dashboard / análise grid pass — next.
 
 Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;
 without a key every AI route returns a clean "not configured" response

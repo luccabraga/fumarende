@@ -149,14 +149,17 @@ export function HistoricoDolarPage() {
           <EmptyState message="Nenhuma cotação registrada." />
         ) : (
           <table className="data-table">
+            <caption className="sr-only">Cotações mensais do dólar</caption>
             <thead>
               <tr>
-                <th>Mês</th>
-                <th>Cotação</th>
-                <th>Salário (US$)</th>
-                <th>Salário (R$)</th>
-                <th>vs média</th>
-                <th />
+                <th scope="col">Mês</th>
+                <th scope="col">Cotação</th>
+                <th scope="col">Salário (US$)</th>
+                <th scope="col">Salário (R$)</th>
+                <th scope="col">vs média</th>
+                <th scope="col">
+                  <span className="sr-only">Ações</span>
+                </th>
               </tr>
             </thead>
             <tbody>

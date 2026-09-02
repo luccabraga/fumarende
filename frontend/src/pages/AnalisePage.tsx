@@ -131,6 +131,7 @@ export function AnalisePage() {
                   max="100"
                   value={cuts[c.category] ?? 0}
                   aria-label={`Corte de ${c.category}`}
+                  aria-valuetext={`${cuts[c.category] ?? 0}%`}
                   onChange={(e) =>
                     setCuts((prev) => ({ ...prev, [c.category]: Number(e.target.value) }))
                   }

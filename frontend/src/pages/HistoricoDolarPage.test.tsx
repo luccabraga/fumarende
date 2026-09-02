@@ -22,6 +22,15 @@ describe('HistoricoDolarPage', () => {
     expect(await screen.findByText('Nenhuma cotação registrada.')).toBeInTheDocument();
   });
 
+  it('gives the quotes table column-scoped headers', async () => {
+    vi.spyOn(api, 'listDollarQuotes').mockResolvedValue([
+      { month: '2026-06', rate: 5.12, salaryUsdCents: 500_000 },
+    ]);
+    render(<HistoricoDolarPage />);
+    const header = await screen.findByRole('columnheader', { name: 'Mês' });
+    expect(header).toHaveAttribute('scope', 'col');
+  });
+
   it('submits a quote with the parsed rate and salary', async () => {
     const listSpy = vi
       .spyOn(api, 'listDollarQuotes')

@@ -225,15 +225,18 @@ export function StatementImportSection({ onImported }: { onImported?: () => void
             {warnings.length > 0 && <p className="subtle">{warnings.join(' ')}</p>}
             <div className="table-scroll">
               <table className="data-table">
+                <caption className="sr-only">Lançamentos do extrato para revisão</caption>
                 <thead>
                   <tr>
-                    <th></th>
-                    <th>Data</th>
-                    <th>Descrição</th>
-                    <th>Valor</th>
-                    <th>Categoria</th>
-                    <th>Tipo</th>
-                    <th>Linha</th>
+                    <th scope="col">
+                      <span className="sr-only">Incluir</span>
+                    </th>
+                    <th scope="col">Data</th>
+                    <th scope="col">Descrição</th>
+                    <th scope="col">Valor</th>
+                    <th scope="col">Categoria</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Linha</th>
                   </tr>
                 </thead>
                 <tbody>

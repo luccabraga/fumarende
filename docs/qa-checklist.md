@@ -3,8 +3,8 @@
 > **Automated coverage.** `scripts/qa-e2e.sh` boots an isolated copy of
 > the built server (throwaway DB, port 4199, no API key) and runs a
 > 133-assertion end-to-end pass over every module's API. Last run
-> 2026-09-01: **133/133 pass.** Unit + integration suites: **server 269,
-> frontend 167, all green.** Items below are marked `[x]` when the e2e
+> 2026-09-02: **133/133 pass.** Unit + integration suites: **server 269,
+> frontend 169, all green.** Items below are marked `[x]` when the e2e
 > run or a unit test verifies them; `[ ]` items are browser-visual
 > checks only a human can confirm.
 
@@ -512,3 +512,18 @@
       change updates the tab title and moves focus; light + dark both
       legible (light `--accent` buttons / `.error-text` / `.subtle`
       captions visibly darker, dark `.subtle` slightly lighter).
+
+## Dashboard / Análise grid (Phase 2.5.5)
+
+- [x] `.grid` / `.grid__full` present (vocab parse test) —
+      `grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))`,
+      `align-items: start`, no media query.
+- [x] Dashboard wraps its cards in `.grid`; the month label, the stat
+      strip (`.card.row`), and the Alertas callout carry `grid__full`
+      (unit test asserts `.grid` and `.card.row.grid__full` render).
+- [x] Análise wraps its four in-boundary cards (Resumo / categoria /
+      Projeção / Cenários) in `.grid`; ConsultorIA + AiUsage stay
+      full-width below (unit test asserts the `.grid` wraps "Resumo").
+- [ ] Browser: desktop tiles the cards two-up (month label + stat
+      strip + Alertas full-width); ~500px collapses to one column
+      identical to before; light + dark unchanged.

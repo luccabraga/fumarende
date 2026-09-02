@@ -65,7 +65,14 @@ frontend. Runs as a launchd service at `http://localhost:4173`.
   five light tokens (+ dark `--text-subtle`) retuned to clear WCAG AA
   4.5:1, locked with a computed contrast test; on route change the tab
   title updates and focus moves to `<main>`.
-- **2.5.5** dashboard / análise grid pass — next.
+- **2.5.5 Dashboard & Análise grid** ✅ — a reusable `.grid` utility
+  (`repeat(auto-fit, minmax(320px, 1fr))`, no media query) plus a
+  `.grid__full` span helper; Dashboard and Análise flow their existing
+  cards into it — one column on narrow viewports, two on wide, with the
+  stat strip / Alertas callout / ConsultorIA spanning full width.
+
+**Phase 2.5 is complete.** Next: **Phase 3 (unscoped) — Open Finance
+bank connections.**
 
 Set `ANTHROPIC_API_KEY` in `server/.env` to enable the AI features;
 without a key every AI route returns a clean "not configured" response

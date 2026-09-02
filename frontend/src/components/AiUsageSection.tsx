@@ -60,12 +60,14 @@ export function AiUsageSection() {
               type="button"
               onClick={() => setShowLog((v) => !v)}
               className="link-btn"
+              aria-expanded={showLog}
+              aria-controls="ai-usage-log"
             >
               {showLog ? '▾' : '▸'} Últimas chamadas ({usage.recent.length})
             </button>
 
             {showLog && (
-              <div>
+              <div id="ai-usage-log">
                 {usage.recent.length === 0 && (
                   <p className="subtle">Nenhuma chamada ainda.</p>
                 )}

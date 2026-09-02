@@ -66,7 +66,11 @@ describe('ConsultorIA', () => {
     ]);
     render(<ConsultorIA />);
     const toggle = await screen.findByRole('button', { name: /Histórico/ });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveAttribute('aria-controls', 'consultor-history');
     fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(document.getElementById('consultor-history')).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Câmbio' })).toBeInTheDocument();
   });
 

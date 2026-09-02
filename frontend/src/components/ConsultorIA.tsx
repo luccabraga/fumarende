@@ -114,11 +114,13 @@ export function ConsultorIA() {
             type="button"
             onClick={() => setShowHistory((v) => !v)}
             className="link-btn"
+            aria-expanded={showHistory}
+            aria-controls="consultor-history"
           >
             {showHistory ? '▾' : '▸'} Histórico ({history.length})
           </button>
           {showHistory && (
-            <div className="stack-sm" style={{ marginTop: 'var(--space-3)' }}>
+            <div id="consultor-history" className="stack-sm" style={{ marginTop: 'var(--space-3)' }}>
               {history.map((h) => (
                 <div
                   key={h.id}

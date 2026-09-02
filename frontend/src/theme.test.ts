@@ -62,6 +62,9 @@ describe('theme.css', () => {
       '.data-list',
       '.data-table',
       '.chart-svg',
+      '.skip-link',
+      '.sr-only',
+      '.link-btn',
     ]) {
       expect(css).toContain(cls);
     }

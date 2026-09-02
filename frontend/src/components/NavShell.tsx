@@ -71,7 +71,10 @@ export function NavShell() {
 
   return (
     <div className="app">
-      <nav className={`nav${menuOpen ? ' nav--open' : ''}`}>
+      <a href="#main" className="skip-link">
+        Pular para o conteúdo
+      </a>
+      <nav aria-label="Navegação principal" className={`nav${menuOpen ? ' nav--open' : ''}`}>
         <div className="nav__brand">fumarende</div>
 
         <div className="nav__topbar">
@@ -80,13 +83,15 @@ export function NavShell() {
             type="button"
             className="btn btn-sm btn-ghost nav__hamburger"
             aria-label="Menu"
+            aria-expanded={menuOpen}
+            aria-controls="nav-list"
             onClick={() => setMenuOpen((v) => !v)}
           >
             ☰
           </button>
         </div>
 
-        <div className="nav__list">
+        <div className="nav__list" id="nav-list">
           <label className="field nav__month">
             <span className="field-label">Mês</span>
             <select
@@ -140,7 +145,7 @@ export function NavShell() {
         </div>
       </nav>
 
-      <main className="main">
+      <main className="main" id="main" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

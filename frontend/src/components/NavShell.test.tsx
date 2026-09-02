@@ -80,4 +80,20 @@ describe('NavShell', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Receitas' }));
     await waitFor(() => expect(nav.classList.contains('nav--open')).toBe(false));
   });
+
+  it('renders a skip link to #main', () => {
+    renderShell();
+    const skip = screen.getByRole('link', { name: 'Pular para o conteúdo' });
+    expect(skip).toHaveAttribute('href', '#main');
+    expect(document.getElementById('main')).not.toBeNull();
+  });
+
+  it('the hamburger reports its expanded state', async () => {
+    renderShell();
+    const btn = await screen.findByRole('button', { name: 'Menu' });
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+    expect(btn).toHaveAttribute('aria-controls', 'nav-list');
+    fireEvent.click(btn);
+    expect(btn).toHaveAttribute('aria-expanded', 'true');
+  });
 });

@@ -41,13 +41,13 @@
   --border-strong: rgba(20, 20, 30, 0.18);
   --text: #1a1c22;
   --text-muted: #545a68;
-  --text-subtle: #6b7280;
-  --accent: #0a8a78;
+  --text-subtle: #5c6370; /* AA: >=4.5:1 on #fff and #f7f6f3 (was #6b7280) */
+  --accent: #04756a; /* AA on white incl. as button bg w/ white text (was #0a8a78) */
   --accent-contrast: #ffffff;
   --violet: #6b52d6;
-  --danger: #d63a58;
-  --warning: #b3730f;
-  --success: #1a9463;
+  --danger: #c22a48; /* AA as .error-text and .btn-danger bg (was #d63a58) */
+  --warning: #875a0b; /* AA (was #b3730f) */
+  --success: #0f7047; /* AA (was #1a9463) */
 
   /* ---- aliases: keep old names working for un-migrated pages ---- */
   --card: var(--bg-elevated);
@@ -70,7 +70,7 @@
   --border-strong: rgba(255, 255, 255, 0.14);
   --text: #eef0f5;
   --text-muted: #8890a0;
-  --text-subtle: #565d6e;
+  --text-subtle: #7b8494; /* AA: >=4.5:1 on #101016 (was #565d6e) — KEEP IN SYNC below */
   --accent: #00e0c6;
   --accent-contrast: #08080b;
   --violet: #8b6bff;
@@ -89,7 +89,7 @@
     --border-strong: rgba(255, 255, 255, 0.14);
     --text: #eef0f5;
     --text-muted: #8890a0;
-    --text-subtle: #565d6e;
+    --text-subtle: #7b8494; /* KEEP IN SYNC with :root[data-theme='dark'] */
     --accent: #00e0c6;
     --accent-contrast: #08080b;
     --violet: #8b6bff;

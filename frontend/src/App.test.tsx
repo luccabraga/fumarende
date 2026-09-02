@@ -86,6 +86,24 @@ describe('App routing', () => {
     expect(window.location.pathname).toBe('/');
   });
 
+  it('sets the document title and moves focus to main on navigation', async () => {
+    vi.spyOn(api, 'fetchAuthStatus').mockResolvedValue({
+      passwordSet: true,
+      authenticated: true,
+    });
+    vi.spyOn(api, 'listIncome').mockResolvedValue([]);
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: 'Dashboard' });
+    fireEvent.click(screen.getByRole('link', { name: 'Receitas' }));
+
+    await waitFor(() => expect(document.title).toBe('Receitas · fumarende'));
+    const main = document.getElementById('main');
+    expect(main).not.toBeNull();
+    expect(main === document.activeElement || main?.contains(document.activeElement)).toBe(true);
+  });
+
   it('keeps showing the login form while unauthenticated', async () => {
     vi.spyOn(api, 'fetchAuthStatus').mockResolvedValue({
       passwordSet: true,
